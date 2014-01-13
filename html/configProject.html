@@ -1,0 +1,347 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>configProject</title><meta name="generator" content="MATLAB 8.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-09-15"><meta name="DC.source" content="configProject.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Load workspace or create new one</a></li><li><a href="#3">Set default path variables</a></li><li><a href="#4">Get path to experiment</a></li><li><a href="#5">Parses through root path and get all project info</a></li><li><a href="#6">Collect file list data for each camera (filter by time if needed):</a></li><li><a href="#7">Set default settings for each camera</a></li><li><a href="#8">SAVE the full experiment info from the expInfo struct</a></li><li><a href="#9">leftover code:</a></li></ul></div><pre class="codeinput"><span class="comment">%clear all</span>
+</pre><h2>Load workspace or create new one<a name="2"></a></h2><pre class="codeinput">result = input(<span class="string">'Do you want to load an existing workspace or start a new project?\n Press "L" to load workspace, anthing else to continue.\n'</span>,<span class="string">'s'</span>);
+<span class="keyword">if</span> result == <span class="string">'l'</span> | <span class="string">'L'</span>
+    disp(<span class="string">'Loading workspace'</span>)
+    cd(<span class="string">'C:\Users\Tim Brown\Documents\ANU\Projects\SpectralPhenoclimatron\Process images\TimCode\_workspaces'</span>)
+    uiopen(<span class="string">'*.mat'</span>)
+    disp(<span class="string">'Workspace Loaded'</span>)
+    who
+    <span class="keyword">return</span>
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">Error using input
+Cannot call INPUT from EVALC.
+Error in configProject (line 5)
+result = input('Do you want to load an existing workspace or start a new project?\n Press "L" to load workspace, anthing else to continue.\n','s');</pre><h2>Set default path variables<a name="3"></a></h2><pre class="codeinput">clear <span class="string">all</span>
+rootSavePath = <span class="string">'C:\Users\Tim Brown\Documents\ANU\Projects\SpectralPhenoclimatron\Process images\Matlab\TimCode\config'</span>;
+rootPath = <span class="string">'Y:\a_data\timestreams\Borevitz\BVZ0012\'</span>;
+rootPath = <span class="string">'C:\a_data\TimeStreams\Borevitz\BVZ0012\'</span>;
+disp([<span class="string">'Current Root Path: "'</span> rootPath <span class="string">'"'</span>])
+</pre><h2>Get path to experiment<a name="4"></a></h2><pre class="codeinput">result = input(<span class="string">'\nPress "L" to choose a different experiment folder or hit Enter to keep the current path\n'</span>,<span class="string">'s'</span>);
+<span class="keyword">if</span> result == <span class="string">'L'</span> | <span class="string">'l'</span>
+    newroot = uigetdir(<span class="string">''</span>,<span class="string">'Select Experiment Directory'</span>);
+    <span class="keyword">if</span> newroot ~= 0
+        rootPath = newroot;
+    <span class="keyword">end</span>
+    rootPath
+<span class="keyword">end</span>
+<span class="comment">% Make sure rootPath has a trailing slash</span>
+<span class="comment">%if rootPath(length(rootPath)) ~= '\', rootPath = [rootPath,'\'], end</span>
+</pre><h2>Parses through root path and get all project info<a name="5"></a></h2><pre class="codeinput">expInfo = getProjectInfo(rootPath);
+
+<span class="comment">%This should be standardized to work for all projects:</span>
+pathToFullIms = <span class="string">'\~fullres\orig\full\'</span> <span class="comment">%(Note: Need to standardize trailing slashes standard):</span>
+</pre><h2>Collect file list data for each camera (filter by time if needed):<a name="6"></a></h2><p>NOTE: Run this section manually to load a new set of images for all cameras (i.e. noon or different dates)</p><pre class="codeinput"><span class="comment">% Time filter parameters</span>
+timeFilter.imTimeFilter1 = <span class="string">'*_12_10_00_00'</span>;
+timeFilter.imTimeFilter2 = <span class="string">'*_12_00_00_00'</span>;
+timeFilter.startHr = 9;
+timeFilter.endHr = 15;
+timeFilter.startDay = 07;
+timeFilter.endDay = 16;
+timeFilter.startMonth = 03;
+timeFilter.endMonth = 03
+
+useNoon = 0; <span class="comment">%Set useNoon = 1 to omit non-Noon images</span>
+<span class="keyword">for</span> curCam = 1:expInfo.numCams
+    imFolderPath = fullfile(expInfo.camList.path{curCam}, pathToFullIms);
+    imFolderPath = imFolderPath{1};<span class="comment">%convert back to char array from cell</span>
+
+   filelist = loadFileList (timeFilter, imFolderPath,useNoon); <span class="comment">%This code loads the file list for each cam</span>
+
+    <span class="comment">%Save filelist to expInfo</span>
+    nFiles = length(filelist);
+    disp([num2str(nFiles) <span class="string">' files found for camera '</span> expInfo.camList.name{curCam} <span class="string">'.'</span>]);
+    expInfo.camList.files{curCam} = filelist;
+    expInfo.camList.nFiles{curCam}=nFiles;
+    <span class="keyword">if</span> nFiles &lt; 1, beep, disp(<span class="string">'No Files found for camera expInfo.camList.name{curCam}, make sure the file path is accurate. NOTE: file paths should end in "\"'</span>);,<span class="keyword">end</span>;
+<span class="keyword">end</span>
+
+
+cont = input(<span class="string">'\nHit enter to continue, anything else to quit\n'</span>);
+<span class="keyword">if</span> ~isempty(cont)
+    <span class="keyword">return</span>
+<span class="keyword">end</span>
+</pre><h2>Set default settings for each camera<a name="7"></a></h2><pre class="codeinput">camNum= input([<span class="string">'You will now identify where the trays and pots are for each camera.\n\n'</span> <span class="keyword">...</span>
+    <span class="string">'There is data available from '</span> num2str(expInfo.numCams) <span class="keyword">...</span>
+    <span class="string">'\nEnter "-1" when you are finished or to continue.'</span> <span class="keyword">...</span>
+    <span class="string">'\nWhich camera do you want to work on?\n'</span>]);
+<span class="keyword">while</span> (camNum &gt;0)
+        camNum = input([<span class="string">'Please pick a number between 1 and '</span> <span class="keyword">...</span>
+            num2str(expInfo.numCams) <span class="string">' or Ctrl^C to quit.\nEnter "-1" '</span> <span class="keyword">...</span>
+            <span class="string">'when you are finished or to continue.\n'</span>]);
+    <span class="keyword">if</span> camNum &gt; 0
+ <span class="comment">%** THIS IS THE MAIN FUNCTION THAT CREATES CAM CONFIG DATA:</span>
+        createEachCamConfig
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+disp(<span class="string">'Cam config complete, please run "processAll.m"'</span>)
+</pre><h2>SAVE the full experiment info from the expInfo struct<a name="8"></a></h2><pre class="codeinput">savenameExpInfo = [date datestr(now,<span class="string">'-hh'</span>) <span class="string">'H'</span> datestr(now,<span class="string">'mm'</span>),<span class="string">'_'</span>,expInfo.expID,<span class="string">'-expInfo-settings.mat'</span>];
+<span class="comment">%Save the current data</span>
+result = input([<span class="string">'Press 1 to save current settings:\n'</span>],<span class="string">'s'</span>)
+<span class="keyword">if</span> result == <span class="string">'1'</span>
+    pathName = uigetdir(rootSavePath,<span class="string">'Choose save location.'</span>)
+    savepathConfig = fullfile(pathName,savenameExpInfo)
+    save(savepathConfig, <span class="string">'expInfo'</span>)
+<span class="keyword">end</span>
+
+<span class="keyword">return</span>
+<span class="comment">%RETURN</span>
+<span class="comment">%END</span>
+</pre><h2>leftover code:<a name="9"></a></h2><pre class="codeinput">TopLeft <span class="string">X340</span>
+Y83
+2805
+1563
+
+curIm = I3;
+
+<span class="comment">%get out layers for a crop region</span>
+blue=(curIm(y1:y2,x1:x2,1));
+red=(curIm(y1:y2,x1:x2,1));
+green=(curIm(y1:y2,x1:x2,2));
+
+<span class="comment">%Get layers for full image</span>
+blue=(curIm(:,:,1));
+red=(curIm(:,:,1));
+green=(curIm(:,:,2));
+
+
+
+new = green - (red);
+imshow(new)
+new=(new./new).*red;
+
+
+
+
+imshow(curIm, [])
+title(<span class="string">'Original Image'</span>);
+
+<span class="comment">% Compute the thresholds</span>
+thresh = multithresh(curIm,2);
+
+<span class="comment">% Apply the thresholds to obtain segmented image</span>
+seg_I = imquantize(curIm,thresh);
+
+<span class="comment">% Show the various segments in the segmented image in color</span>
+RGB = label2rgb(seg_I);
+figure, imshow(RGB)
+title(<span class="string">'Segmented Image'</span>);
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2013a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+
+%clear all
+
+%% Load workspace or create new one
+result = input('Do you want to load an existing workspace or start a new project?\n Press "L" to load workspace, anthing else to continue.\n','s');
+if result == 'l' | 'L'
+    disp('Loading workspace')
+    cd('C:\Users\Tim Brown\Documents\ANU\Projects\SpectralPhenoclimatron\Process images\TimCode\_workspaces')
+    uiopen('*.mat')
+    disp('Workspace Loaded')
+    who
+    return
+end
+
+%% Set default path variables
+clear all
+rootSavePath = 'C:\Users\Tim Brown\Documents\ANU\Projects\SpectralPhenoclimatron\Process images\Matlab\TimCode\config';
+rootPath = 'Y:\a_data\timestreams\Borevitz\BVZ0012\';
+rootPath = 'C:\a_data\TimeStreams\Borevitz\BVZ0012\';
+disp(['Current Root Path: "' rootPath '"'])
+
+%% Get path to experiment
+result = input('\nPress "L" to choose a different experiment folder or hit Enter to keep the current path\n','s');
+if result == 'L' | 'l'
+    newroot = uigetdir('','Select Experiment Directory');
+    if newroot ~= 0
+        rootPath = newroot;
+    end
+    rootPath
+end
+% Make sure rootPath has a trailing slash
+%if rootPath(length(rootPath)) ~= '\', rootPath = [rootPath,'\'], end
+
+%% Parses through root path and get all project info
+expInfo = getProjectInfo(rootPath);
+
+%This should be standardized to work for all projects:
+pathToFullIms = '\~fullres\orig\full\' %(Note: Need to standardize trailing slashes standard):
+
+
+%% Collect file list data for each camera (filter by time if needed):
+% NOTE: Run this section manually to load a new set of images for all cameras (i.e. noon or
+% different dates) 
+
+% Time filter parameters
+timeFilter.imTimeFilter1 = '*_12_10_00_00';
+timeFilter.imTimeFilter2 = '*_12_00_00_00';
+timeFilter.startHr = 9;
+timeFilter.endHr = 15;
+timeFilter.startDay = 07;
+timeFilter.endDay = 16;
+timeFilter.startMonth = 03;
+timeFilter.endMonth = 03
+
+useNoon = 0; %Set useNoon = 1 to omit non-Noon images
+for curCam = 1:expInfo.numCams
+    imFolderPath = fullfile(expInfo.camList.path{curCam}, pathToFullIms);
+    imFolderPath = imFolderPath{1};%convert back to char array from cell
+    
+   filelist = loadFileList (timeFilter, imFolderPath,useNoon); %This code loads the file list for each cam
+   
+    %Save filelist to expInfo
+    nFiles = length(filelist);
+    disp([num2str(nFiles) ' files found for camera ' expInfo.camList.name{curCam} '.']);
+    expInfo.camList.files{curCam} = filelist;
+    expInfo.camList.nFiles{curCam}=nFiles;
+    if nFiles < 1, beep, disp('No Files found for camera expInfo.camList.name{curCam}, make sure the file path is accurate. NOTE: file paths should end in "\"');,end;
+end
+
+
+cont = input('\nHit enter to continue, anything else to quit\n');
+if ~isempty(cont)
+    return
+end
+
+%% Set default settings for each camera
+camNum= input(['You will now identify where the trays and pots are for each camera.\n\n' ...
+    'There is data available from ' num2str(expInfo.numCams) ...
+    '\nEnter "-1" when you are finished or to continue.' ...
+    '\nWhich camera do you want to work on?\n']);
+while (camNum >0)
+        camNum = input(['Please pick a number between 1 and ' ...
+            num2str(expInfo.numCams) ' or Ctrl^C to quit.\nEnter "-1" ' ...
+            'when you are finished or to continue.\n']);
+    if camNum > 0
+ %** THIS IS THE MAIN FUNCTION THAT CREATES CAM CONFIG DATA:
+        createEachCamConfig
+    end
+end
+
+disp('Cam config complete, please run "processAll.m"')
+
+
+%% SAVE the full experiment info from the expInfo struct
+savenameExpInfo = [date datestr(now,'-hh') 'H' datestr(now,'mm'),'_',expInfo.expID,'-expInfo-settings.mat'];
+%Save the current data
+result = input(['Press 1 to save current settings:\n'],'s')
+if result == '1'
+    pathName = uigetdir(rootSavePath,'Choose save location.')
+    savepathConfig = fullfile(pathName,savenameExpInfo)
+    save(savepathConfig, 'expInfo')
+end
+
+return
+%RETURN
+%END
+
+%% leftover code:
+
+TopLeft X340
+Y83
+2805
+1563
+
+curIm = I3;
+
+%get out layers for a crop region
+blue=(curIm(y1:y2,x1:x2,1));
+red=(curIm(y1:y2,x1:x2,1));
+green=(curIm(y1:y2,x1:x2,2));
+
+%Get layers for full image
+blue=(curIm(:,:,1));
+red=(curIm(:,:,1));
+green=(curIm(:,:,2));
+
+
+
+new = green - (red);
+imshow(new)
+new=(new./new).*red;
+
+
+
+
+imshow(curIm, [])
+title('Original Image');
+
+% Compute the thresholds
+thresh = multithresh(curIm,2);
+
+% Apply the thresholds to obtain segmented image
+seg_I = imquantize(curIm,thresh);
+
+% Show the various segments in the segmented image in color
+RGB = label2rgb(seg_I);
+figure, imshow(RGB)
+title('Segmented Image');
+##### SOURCE END #####
+--></body></html>

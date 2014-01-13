@@ -1,0 +1,496 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>createEachCamConfig</title><meta name="generator" content="MATLAB 8.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-09-15"><meta name="DC.source" content="createEachCamConfig.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1></h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Pick image set and number of keyframe image to use for setting up default processing values for each camera</a></li><li><a href="#2">Get path to images:</a></li><li><a href="#3">Pick start and end images</a></li><li><a href="#4">Unwarp Image</a></li><li><a href="#5">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</a></li><li><a href="#6">Rotate image</a></li><li><a href="#7">Crop image</a></li></ul></div><h2>Pick image set and number of keyframe image to use for setting up default processing values for each camera<a name="1"></a></h2><pre class="codeinput">cont=camNum ;
+<span class="keyword">while</span> ~isempty(cont)
+    curCamName = expInfo.camList.name{cont};
+    curChName = expInfo.camList.chambLoc{cont};
+    curCamType = expInfo.camList.camType{camNum};
+    cont = input([<span class="string">'You chose Camera: '</span> curCamName <span class="string">' in chamber '</span> curChName <span class="string">'. Cam type: '</span> num2str(curCamType) <span class="keyword">...</span>
+        <span class="string">' (1=DSLR,2=NC5)\nPress return to continue or enter a different chamber number.\n'</span>]);
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">Undefined function or variable 'camNum'.
+Error in createEachCamConfig (line 3)
+cont=camNum ;</pre><h2>Get path to images:<a name="2"></a></h2><pre class="codeinput">imFolderPath = fullfile(expInfo.camList.path{camNum}, pathToFullIms);
+imFolderPath = imFolderPath{1};<span class="comment">%convert back to char array from cell</span>
+
+disp([<span class="string">'Path to images is: '</span> imFolderPath])
+
+curCamSet.number = camNum;
+curCamSet.files = expInfo.camList.files{camNum};
+</pre><h2>Pick start and end images<a name="3"></a></h2><pre class="codeinput">nFiles = length(curCamSet.files);
+<span class="keyword">if</span> useNoon == 1
+    pickStartIm = input(<span class="string">'\nDo you want to select a starting image?\nHit Enter for Yes or anything else for No.\n'</span>);
+    <span class="keyword">if</span> isempty(pickStartIm)
+        result = 1;
+        <span class="keyword">while</span> ~isempty(result)
+            result = input([<span class="string">'Enter an image number from 1 to '</span> num2str(nFiles)  <span class="string">' for the START image. \n'</span> <span class="keyword">...</span>
+                <span class="string">'The image will load so you can view it. Enter another number to select a different image.\n'</span> <span class="keyword">...</span>
+                <span class="string">'Hit Enter when finished and your last image will be the start image.\n'</span>]);
+            <span class="keyword">if</span> ~isempty(result)
+                startIm = imread(fullfile(imFolderPath,curCamSet.files{result}));
+                imshow(imrotate(startIm,180));
+                title(curCamSet.files{result});
+                curCamSet.startImNum = result
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">else</span>
+        curCamSet.startImNum = 1;
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> useNoon == 1
+    pickEndIm = input(<span class="string">'Do you want to select a END image?\nHit Enter for Yes or anything else for No.'</span>);
+    <span class="keyword">if</span> isempty(pickEndIm)
+        result = 1;
+        <span class="keyword">while</span> ~isempty(result)
+            result = input([<span class="string">'Enter an image number from '</span> num2str(curCamSet.startImNum) + 1 <span class="string">' to '</span> num2str(nFiles)  <span class="string">' for the END image. \n'</span> <span class="keyword">...</span>
+                <span class="string">'The image will load so you can view it\n'</span> <span class="keyword">...</span>
+                <span class="string">'Enter another number to select a different image.\n'</span> <span class="keyword">...</span>
+                <span class="string">'Hit Enter when finished and your last image will be the start image.\n'</span>]);
+            <span class="keyword">if</span> ~isempty(result)
+                curCamSet.endImNum = result;
+                endIm = imread(fullfile(imFolderPath,curCamSet.files{result}));
+                imshow(imrotate(endIm,180));
+                title(curCamSet.files{result});
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">else</span>
+    curCamSet.endImNum = length(curCamSet.files);
+<span class="keyword">end</span>
+
+selection = input([<span class="string">'Which file do you want to load as the master image?\nHit "Enter" to choose 1 and continue, "L" to'</span> <span class="keyword">...</span>
+    <span class="string">'load the via using a dialog box\n or enter an number from 1 to '</span>, num2str(nFiles),<span class="string">'.\n'</span>],<span class="string">'s'</span>);
+masterImNum = 1; <span class="comment">%By default load file one</span>
+<span class="comment">%Check if number is within bounds; default to 1 on error</span>
+<span class="keyword">if</span> (str2num(selection) &gt; 0 &amp; str2num(selection) &lt; (nFiles + 1))
+    masterImNum = str2num(selection)
+<span class="keyword">elseif</span> selection ==  <span class="string">'L'</span>  <span class="comment">%If the choose to select an image then filepath is set via the dialog box:"</span>
+    [filename filepath] =    uigetfile(<span class="string">'*.jpg'</span>,imFolderPath)
+<span class="keyword">end</span>
+
+curCamSet.masterImNum  = masterImNum <span class="comment">%NOTE: This will not save correctly if the user picked their own image b/c we won't know the image number</span>
+curCamSet.masterImPath  = fullfile(imFolderPath,curCamSet.files{masterImNum})
+curCamSet.camType = expInfo.camList.camType{camNum}
+filetoload = curCamSet.masterImPath
+
+I =imread(filetoload);
+
+
+
+<span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+</pre><h2>Unwarp Image<a name="4"></a></h2><p>Let user choose center of image if the camera isn't centered</p><pre class="codeinput">doUnwarp = 1;
+doUnwarp = input(<span class="string">''</span>)
+<span class="keyword">if</span> doUnwarp == 0;
+    unwarpAmt = 0;
+    imCenter = [0,0];
+<span class="keyword">else</span>
+    inputCenter = input(<span class="string">'Do you want to choose the image center for the Unwarp process? \n Press 1 for YES, any other key for no:  '</span>)
+
+    <span class="keyword">if</span> inputCenter == 1
+        <span class="comment">%Put an X down the center to help user:</span>
+        img=I;
+        a = size(img);
+        yCenter = round(a(1)/2.1);
+        xCenter = round(a(2)/2);
+        img(:,2:xCenter:end,:) = 255;       <span class="comment">%# Change every nth column to black</span>
+        img(2:yCenter:end,:,:) = 255;       <span class="comment">%# Change every nth row to black</span>
+        imshow(img);
+        [x,y] = getROI(img,1);
+        imCenter = [x,y]
+    <span class="keyword">else</span>
+        imCenter = [0,0]
+    <span class="keyword">end</span>
+    close
+
+    <span class="comment">% Set actual unwarp values.</span>
+    <span class="comment">%  These are manually determined</span>
+    <span class="keyword">if</span> curCamSet.camType == 1
+        unwarpAmt = -0.05 <span class="comment">% camType 1 = Canon 700D DSLR w/ 18mm lens</span>
+    <span class="keyword">else</span>
+        unwarpAmt = -.175 <span class="comment">% camType 0 = StaDot Necam SC5 w/ 4-12mm lens set at 4mm</span>
+    <span class="keyword">end</span>
+
+    <span class="comment">% Do the actual unwarp</span>
+    disp(<span class="string">'Unwarping image...'</span>)
+    I1 = lensdistort(I,unwarpAmt,<span class="string">'interpolation'</span>,<span class="string">'nearest'</span>,<span class="string">'padmethod'</span>,<span class="string">'replicate'</span>,<span class="string">'ftype'</span>,4, <span class="string">'ImCenter'</span>, imCenter);
+<span class="keyword">end</span>
+</pre><h2>%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%<a name="5"></a></h2><h2>Rotate image<a name="6"></a></h2><pre>  (set to 0 if image has already been rotated in pre-processing)</pre><pre class="codeinput"><span class="comment">%Show image with grid on it</span>
+img = addLines(I1,40);
+imshow(img);                  <span class="comment">%# Display the image</span>
+
+amtToRotate = 0.63;
+totalRotation = 180; <span class="comment">% By default we want the back of the chamber at the top</span>
+
+tempIm = I1;
+<span class="comment">%Repeat rotation until complete; count total rotation amount:</span>
+<span class="keyword">while</span> amtToRotate ~= 0,
+    amtToRotate = input(<span class="string">'Enter amount to rotate image (Enter 0 when finished or to skip rotation. Use negative values to reverse rotation): '</span>);
+    imshow(addLines(tempIm,40,40));
+    tempIm = imrotate(tempIm, amtToRotate);
+    imshow(addLines(tempIm,40));
+    totalRotation = totalRotation + amtToRotate
+<span class="keyword">end</span>
+I2 = imrotate(I1, totalRotation);
+
+<span class="comment">% Do it all at once: I2 = imrotate(I1, 0.63);</span>
+
+<span class="comment">%Report total rotation</span>
+totalRotation
+</pre><h2>Crop image<a name="7"></a></h2><pre class="codeinput"><span class="comment">%Get image crop</span>
+inputROI = input(<span class="string">'Do you want to Crop the main image? \n Press 1 for YES, any other key for no:  '</span>);
+
+<span class="comment">%input the ROI area</span>
+<span class="keyword">if</span> inputROI == 1
+    [x,y] = getROI(I2,2,<span class="string">'Set crop area for main image:'</span>);
+<span class="keyword">else</span>
+    x=[0,0];
+    y=[0,0];
+<span class="keyword">end</span>
+imCropCoords = [x,y];
+
+<span class="comment">%Crop image:</span>
+I3 = I2(y(1):y(2),x(1):x(2),:);
+
+imshow(I3,<span class="string">'Border'</span>,<span class="string">'tight'</span>,<span class="string">'InitialMagnification'</span>, 40);
+movegui(<span class="string">'east'</span>);
+<span class="comment">% Tray Selection</span>
+trayCount = input(<span class="string">'How many trays? (Enter 0 for none)'</span>  );
+
+
+<span class="comment">% List of xy coords of trays in order TopLeft X1Y1, Bottom Right X2Y2</span>
+<span class="keyword">if</span> trayCount &gt; 0
+    trays = zeros(trayCount,4);
+    <span class="keyword">for</span> i = 1:trayCount
+        [x,y] = getROI(I3,2,[<span class="string">'Choose coordinates of tray '</span>,num2str(i),<span class="string">':'</span>]);
+        trays(i,1) = x(1);
+        trays(i,2) = y(1);
+        trays(i,3) = x(2);
+        trays(i,4) = y(2);
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">% Now get total number of pots</span>
+imshow(I3) <span class="comment">%Show user the iamge</span>
+title(<span class="string">'Input the number of pots'</span>);
+clear <span class="string">pots</span>
+
+potCols = input(<span class="string">'Enter columns pot count  (number of pots in Y/Vertical per tray: \n'</span>)
+potRows = input(<span class="string">'Enter rows pot count (number of pots in X/Horizontal per tray: \n'</span>)
+
+totPots = potCols * potRows * trayCount
+
+close <span class="comment">%the figure</span>
+
+curCamSet.rotation = totalRotation;
+curCamSet.imCropCoords= imCropCoords;
+curCamSet.unwarpAmt = unwarpAmt;
+curCamSet.imCenter = imCenter;
+curCamSet.trayCount = trayCount;
+curCamSet.trayCoords = trays;
+curCamSet.potCols = potCols;
+curCamSet.potRows = potRows;
+curCamSet.totPots = totPots
+
+expInfo.camList.config(camNum)=curCamSet;
+
+camNum = 5
+curCamName = expInfo.camList.name(camNum)
+savenameCurCam = [expInfo.expID,<span class="string">'-'</span>,curCamName{1},<span class="string">'-settings.mat'</span>];
+<span class="comment">%Save the current data</span>
+result = input([<span class="string">'Press 1 to save current settings:\n'</span>],<span class="string">'s'</span>)
+<span class="keyword">if</span> result == <span class="string">'1'</span>
+    pathName = uigetdir(rootSavePath,<span class="string">'Choose save location.'</span>)
+    savepathCam = fullfile(pathName,savenameCurCam)
+    save(savepathCam, <span class="string">'curCamSet'</span>)
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2013a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+
+%% Pick image set and number of keyframe image to use for setting up default processing values for each camera
+cont=camNum ;
+while ~isempty(cont)
+    curCamName = expInfo.camList.name{cont};
+    curChName = expInfo.camList.chambLoc{cont};
+    curCamType = expInfo.camList.camType{camNum};
+    cont = input(['You chose Camera: ' curCamName ' in chamber ' curChName '. Cam type: ' num2str(curCamType) ...
+        ' (1=DSLR,2=NC5)\nPress return to continue or enter a different chamber number.\n']);
+end
+
+%% Get path to images:
+imFolderPath = fullfile(expInfo.camList.path{camNum}, pathToFullIms);
+imFolderPath = imFolderPath{1};%convert back to char array from cell
+
+disp(['Path to images is: ' imFolderPath])
+
+curCamSet.number = camNum;
+curCamSet.files = expInfo.camList.files{camNum};
+
+%% Pick start and end images
+nFiles = length(curCamSet.files);
+if useNoon == 1
+    pickStartIm = input('\nDo you want to select a starting image?\nHit Enter for Yes or anything else for No.\n');
+    if isempty(pickStartIm)
+        result = 1;
+        while ~isempty(result)
+            result = input(['Enter an image number from 1 to ' num2str(nFiles)  ' for the START image. \n' ...
+                'The image will load so you can view it. Enter another number to select a different image.\n' ...
+                'Hit Enter when finished and your last image will be the start image.\n']);
+            if ~isempty(result)
+                startIm = imread(fullfile(imFolderPath,curCamSet.files{result}));
+                imshow(imrotate(startIm,180));
+                title(curCamSet.files{result});
+                curCamSet.startImNum = result
+            end
+        end
+    end
+else
+        curCamSet.startImNum = 1;
+end
+
+if useNoon == 1
+    pickEndIm = input('Do you want to select a END image?\nHit Enter for Yes or anything else for No.');
+    if isempty(pickEndIm)
+        result = 1;
+        while ~isempty(result)
+            result = input(['Enter an image number from ' num2str(curCamSet.startImNum) + 1 ' to ' num2str(nFiles)  ' for the END image. \n' ...
+                'The image will load so you can view it\n' ...
+                'Enter another number to select a different image.\n' ...
+                'Hit Enter when finished and your last image will be the start image.\n']);
+            if ~isempty(result)
+                curCamSet.endImNum = result;
+                endIm = imread(fullfile(imFolderPath,curCamSet.files{result}));
+                imshow(imrotate(endIm,180));
+                title(curCamSet.files{result});
+            end
+        end
+    end
+else
+    curCamSet.endImNum = length(curCamSet.files);
+end
+
+selection = input(['Which file do you want to load as the master image?\nHit "Enter" to choose 1 and continue, "L" to' ...
+    'load the via using a dialog box\n or enter an number from 1 to ', num2str(nFiles),'.\n'],'s');
+masterImNum = 1; %By default load file one
+%Check if number is within bounds; default to 1 on error
+if (str2num(selection) > 0 & str2num(selection) < (nFiles + 1))
+    masterImNum = str2num(selection)
+elseif selection ==  'L'  %If the choose to select an image then filepath is set via the dialog box:"
+    [filename filepath] =    uigetfile('*.jpg',imFolderPath)
+end
+
+curCamSet.masterImNum  = masterImNum %NOTE: This will not save correctly if the user picked their own image b/c we won't know the image number
+curCamSet.masterImPath  = fullfile(imFolderPath,curCamSet.files{masterImNum})
+curCamSet.camType = expInfo.camList.camType{camNum}
+filetoload = curCamSet.masterImPath  
+
+I =imread(filetoload);
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Unwarp Image
+% Let user choose center of image if the camera isn't centered
+
+doUnwarp = 1;
+doUnwarp = input('')
+if doUnwarp == 0;
+    unwarpAmt = 0;
+    imCenter = [0,0];
+else
+    inputCenter = input('Do you want to choose the image center for the Unwarp process? \n Press 1 for YES, any other key for no:  ')
+    
+    if inputCenter == 1
+        %Put an X down the center to help user:
+        img=I;
+        a = size(img);
+        yCenter = round(a(1)/2.1);
+        xCenter = round(a(2)/2);
+        img(:,2:xCenter:end,:) = 255;       %# Change every nth column to black
+        img(2:yCenter:end,:,:) = 255;       %# Change every nth row to black
+        imshow(img);
+        [x,y] = getROI(img,1);
+        imCenter = [x,y]
+    else
+        imCenter = [0,0]
+    end
+    close
+
+    % Set actual unwarp values. 
+    %  These are manually determined
+    if curCamSet.camType == 1
+        unwarpAmt = -0.05 % camType 1 = Canon 700D DSLR w/ 18mm lens 
+    else
+        unwarpAmt = -.175 % camType 0 = StaDot Necam SC5 w/ 4-12mm lens set at 4mm    
+    end
+    
+    % Do the actual unwarp    
+    disp('Unwarping image...')    
+    I1 = lensdistort(I,unwarpAmt,'interpolation','nearest','padmethod','replicate','ftype',4, 'ImCenter', imCenter);
+end
+
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Rotate image 
+%    (set to 0 if image has already been rotated in pre-processing)
+
+%Show image with grid on it
+img = addLines(I1,40);
+imshow(img);                  %# Display the image
+
+amtToRotate = 0.63;
+totalRotation = 180; % By default we want the back of the chamber at the top
+
+tempIm = I1;
+%Repeat rotation until complete; count total rotation amount:
+while amtToRotate ~= 0,
+    amtToRotate = input('Enter amount to rotate image (Enter 0 when finished or to skip rotation. Use negative values to reverse rotation): ');
+    imshow(addLines(tempIm,40,40));
+    tempIm = imrotate(tempIm, amtToRotate);
+    imshow(addLines(tempIm,40));
+    totalRotation = totalRotation + amtToRotate
+end
+I2 = imrotate(I1, totalRotation);
+
+% Do it all at once: I2 = imrotate(I1, 0.63);
+
+%Report total rotation
+totalRotation
+
+
+%% Crop image
+%Get image crop
+inputROI = input('Do you want to Crop the main image? \n Press 1 for YES, any other key for no:  ');
+
+%input the ROI area
+if inputROI == 1
+    [x,y] = getROI(I2,2,'Set crop area for main image:');
+else
+    x=[0,0];
+    y=[0,0];
+end
+imCropCoords = [x,y];
+
+%Crop image:
+I3 = I2(y(1):y(2),x(1):x(2),:);
+
+imshow(I3,'Border','tight','InitialMagnification', 40);
+movegui('east');
+% Tray Selection
+trayCount = input('How many trays? (Enter 0 for none)'  );
+
+
+% List of xy coords of trays in order TopLeft X1Y1, Bottom Right X2Y2
+if trayCount > 0
+    trays = zeros(trayCount,4);
+    for i = 1:trayCount
+        [x,y] = getROI(I3,2,['Choose coordinates of tray ',num2str(i),':']);
+        trays(i,1) = x(1);
+        trays(i,2) = y(1);
+        trays(i,3) = x(2);
+        trays(i,4) = y(2);
+    end
+end
+
+% Now get total number of pots
+imshow(I3) %Show user the iamge
+title('Input the number of pots');
+clear pots
+
+potCols = input('Enter columns pot count  (number of pots in Y/Vertical per tray: \n')
+potRows = input('Enter rows pot count (number of pots in X/Horizontal per tray: \n')
+
+totPots = potCols * potRows * trayCount
+
+close %the figure
+
+curCamSet.rotation = totalRotation;
+curCamSet.imCropCoords= imCropCoords;
+curCamSet.unwarpAmt = unwarpAmt;
+curCamSet.imCenter = imCenter;
+curCamSet.trayCount = trayCount;
+curCamSet.trayCoords = trays;
+curCamSet.potCols = potCols;
+curCamSet.potRows = potRows;
+curCamSet.totPots = totPots
+
+expInfo.camList.config(camNum)=curCamSet;
+
+camNum = 5
+curCamName = expInfo.camList.name(camNum)
+savenameCurCam = [expInfo.expID,'-',curCamName{1},'-settings.mat'];
+%Save the current data
+result = input(['Press 1 to save current settings:\n'],'s')
+if result == '1'
+    pathName = uigetdir(rootSavePath,'Choose save location.')
+    savepathCam = fullfile(pathName,savenameCurCam)
+    save(savepathCam, 'curCamSet')
+end
+
+##### SOURCE END #####
+--></body></html>
