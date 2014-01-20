@@ -40,10 +40,10 @@ function laticeLines = getLatticeLines ( img, numHLns, numVLns )
 
     [hlns, vlns] = getLines ( blured, 0.1 );
 
-    %hlnsGroups = groupLines ( hlns, numHLns );
-    vlnsGroups = groupLines ( vlns, numVLns );
+    hlnsGroups = groupLines ( hlns, numHLns );
+    %vlnsGroups = groupLines ( vlns, numVLns );
 
-    laticeLines = vlnsGroups;
+    laticeLines = hlnsGroups;
 
     %drawLines ( [vlns], img );
 end
@@ -87,15 +87,17 @@ function lnsGroups = groupLines ( lines, numExpGroups )
     % 2) Separate the positive rhos from the negative.
     % Index 1 is positive rhos, 2 is negative rhos
     subRhos(1).ind = rhos>=0;
+    subRhos(1).empty = 1;
     subRhos(2).ind = rhos<0;
+    subRhos(2).empty = 1;
 
     for ( i = 1:2 )
-        % 3) Detect a high difference between consecutive sorted rhos.
-
+        % Ignore if there are no rho values.
         if ( sum(subRhos(i).ind) <=0 )
             continue;
         end
 
+        % 3) Detect a high difference between consecutive sorted rhos.
         % rhos with a sign(+-). abs to avoid unexpected differences
         sRhos = abs( rhos( subRhos(i).ind ) );
 
@@ -108,14 +110,51 @@ function lnsGroups = groupLines ( lines, numExpGroups )
         % selecting lines for groups.
         dssRhos = diff(ssRhos);
 
-        % Diffs that are in the higher half shold represent change to groups.
-        % A 1 in offset n in grpChange means that the (n+1) line represents a
-        % change of group. grpChange is binary array.
-        grpChange = dssRhos > abs( max(dssRhos) - min(dssRhos) ) / 2;
-        %lGroups = double(lGroups); % So we can represent groups with numbers
+        % We sort them to easily identify the bigger ones.
+        potentials = sort(dssRhos, 2, 'descend');
 
-        % Struct containing groups. One element bigger than dssRhos.
-        lGroups = zeros(1,length(subRhos(i).ind));
+        % * Forefit, if we don't have enough good potentials.
+        % * For numExpGroups groups we need numExpGroups-1 potentials.
+        % * quantile(dssRhos, [.75]) is the first quartil.
+        % * Groups are separated when diff values are 'big'. Potential values
+        %   are greater than the first quartil.
+        % FIXME: The first quartil might still allow values that are too
+        %        low, would the wisker value be better?
+        if ( sum ( potentials > quantile(dssRhos, [.75]) ) < numExpGroups-1 )
+            continue;
+        end
+
+        % A 1 in offset n in grpChange means that the (n+1) line represents a
+        % change of group.
+        grpChange = dssRhos >= potentials(numExpGroups-1);
+        [lGroups, numDetGroups] = createGroupStruct ( grpChange );
+
+        % 4) Put each line in its respective group.
+        sLns = lines( subRhos(i).ind );
+        sLns = sLns(ssRhosInd); % sorted signed lines.
+        for ( numDetGroup = 1:numDetGroups )
+            subRhos(i).lnsGroups(numDetGroup).lines = ...
+                    sLns(lGroups == numDetGroup);
+        end
+
+        subRhos(i).empty = 0;
+    end
+
+    % 5) Return the best fit, positives or negatives.
+    %FIXME: What if they both have empty == 0????
+    if ( ~subRhos(1).empty )
+        lnsGroups = subRhos(1).lnsGroups;
+    elseif (~subRhos(2).empty )
+        lnsGroups = subRhos(2).lnsGroups;
+    else
+        error('Could not find a valid grouping for lattice lines');
+    end
+
+
+    % Helper functions for groupLines
+    function [lGroups, numDetGroups] = createGroupStruct ( grpChange )
+        % Struct containing groups. It is one element bigger than grpChange
+        lGroups = zeros(1,length(grpChange)+1);
         lGroups(1) = 1; % First element is always from group 1.
         G = 1;
         for (j = 1:length(grpChange))
@@ -127,24 +166,7 @@ function lnsGroups = groupLines ( lines, numExpGroups )
 
         % number of detected groups
         numDetGroups = max ( lGroups );
-
-        %FIXME: if numDetGroups > numExpGroup, leave it.
-        %       if numDetGroups < numExpGroup, make it up with the next
-        %       highest values in dssRhos.
-
-        % 4) Put each line in its respective group.
-        sLns = lines( subRhos(i).ind );
-        sLns = sLns(ssRhosInd); % sorted signed lines.
-        for ( numDetGroup = 1:numDetGroups )
-            subRhos(i).lnsGroups(numDetGroup).lines = ...
-                    sLns(lGroups == numDetGroup);
-        end
     end
-
-    % 5) Return the best fit, positives or negatives.
-    %FIXME: decide wether to use subRhos(1) or subRhos(2)
-    lnsGroups = subRhos(1).lnsGroups;
-
 end
 
 % Important assumptions:
