@@ -17,9 +17,11 @@ function coordinates = detectLattice ( lat, latImg )
     % Number of coordinates needed to create a lattice for lat
     numCoor = latNumHorizontalLns*latNumVerticalLns;
 
-    %FIXME: check to see if it is already an image matrix.
-    % We don't really use the color version of the img
-    latImg = rgb2gray ( imread(latImg) );
+    % Check to see if its a matrix of numeric values with 3 dims.
+    if ( ~isnumeric(latImg) || size(size(latImg),2) )
+        error ( 'detectLattice expects a 3D numeric matrix' );
+
+    latImg = rgb2gray ( latImg );
 
     coordinates = ...
         getLatticeLines ( latImg, latNumHorizontalLns, latNumVerticalLns );
