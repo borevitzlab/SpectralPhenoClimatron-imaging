@@ -18,7 +18,7 @@ function coordinates = detectLattice ( lat, latImg )
     numCoor = latNumHorizontalLns*latNumVerticalLns;
 
     % Check to see if its a matrix of numeric values with 3 dims.
-    if ( ~isnumeric(latImg) || size(size(latImg),2) )
+    if ( ~isnumeric(latImg) || size(size(latImg),2) ~= 3 )
         error ( 'detectLattice expects a 3D numeric matrix' );
     end
 
