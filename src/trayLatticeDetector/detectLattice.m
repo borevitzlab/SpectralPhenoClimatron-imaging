@@ -20,6 +20,7 @@ function coordinates = detectLattice ( lat, latImg )
     % Check to see if its a matrix of numeric values with 3 dims.
     if ( ~isnumeric(latImg) || size(size(latImg),2) )
         error ( 'detectLattice expects a 3D numeric matrix' );
+    end
 
     latImg = rgb2gray ( latImg );
 
