@@ -14,16 +14,19 @@ function [dImg, imgCenter, ftype, btype, distortConst] = imgDistort ( imgpath )
     imgCamLens = imgInfo.DigitalCamera.UnknownTags(6).Value;
 
     % FIXME: the distortion also depends on focal length.
-    % imgCamFocalLength = imgInfo.DigitalCamera.FocalLength;
+    imgCamFocalLength = imgInfo.DigitalCamera.FocalLength;
 
     distortConst = 0;
     if ( strcmp(imgCamModel, 'Canon EOS 700D') ...
-         && size( strfind(imgCamLens, 'EF-S18-55mm'),1) > 0 )
+         && size( strfind(imgCamLens, 'EF-S18-55mm f/3.5-5.6 IS STM'),1) > 0 ...
+         && imgCamFocalLength == 18 )
         distortConst = -0.025;
 
     else
-        error( strcat( 'Could not find a distortion constant for camera ', ...
-                      imgCamModel, 'and lens ', imgCamLens ) );
+        error( strcat( 'Could not find a distortion constant for ', ...
+                    'camera: ', imgCamModel, ...
+                    ',lens: ', imgCamLens, ...
+                    'and focal length: ', imgCamFocalLength, '.' ) );
 
     end
 
