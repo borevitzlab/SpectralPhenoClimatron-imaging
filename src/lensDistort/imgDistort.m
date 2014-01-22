@@ -19,7 +19,7 @@ function [dImg, imgCenter, ftype, btype, distortConst] = imgDistort ( imgpath )
     distortConst = 0;
     if ( strcmp(imgCamModel, 'Canon EOS 700D') ...
          && size( strfind(imgCamLens, 'EF-S18-55mm'),1) > 0 )
-        distortConst = -0.05;
+        distortConst = -0.025;
 
     else
         error( strcat( 'Could not find a distortion constant for camera ', ...
