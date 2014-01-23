@@ -118,37 +118,50 @@ function retLnsG = calcRepresentantLines ( lnsGroups, imgSize )
         intMeans.X = 0;
         intMeans.Y = 0;
         intscts = [];
-        for ( i = 1:(size(glines,2)-1) )
-            for ( j = (i+1):size(glines,2) )
-                c0 = glines(i).c;
-                m0 = glines(i).m;
-                c1 = glines(j).c;
-                m1 = glines(j).m;
 
-                % Intersections
-                xint = (c1-c0)/(m0-m1);
-                yint = (c0*m1 - c1*m0)/(m1-m0);
+        if ( size(glines,2) < 1 )
+            error ( 'Unknown error calculating line means.');
 
-                if ( xint < imgSize(2) && xint > 0 ...
-                     && yint < imgSize(1) && yint > 0 )
-                    intscts = vertcat ( intscts, [ xint, yint ] );
-
-                else
-                    % This is painful: We can't simply ignore the lines that
-                    % do not intersect because we could end up with situations
-                    % where there are no intersects. To address this, we
-                    % create two lines from the opposing points of the two
-                    % non-intersecting lines. These new lines WILL intersect.
-                    intscts = vertcat ( intscts, ...
-                            getAlternativeIntersect ( glines(i), glines(j) ) );
-                end
-
-            end
-
-            intMeans.X = mean(intscts(:,1));
-            intMeans.Y = mean(intscts(:,2));
-
+        elseif ( size(glines,2) == 1 )
+            % Don't calc intersects if its just one line.
+            intMeans.X = ( glines(1).point1(1) + glines(1).point2(1) ) / 2;
+            intMeans.Y = ( glines(1).point1(2) + glines(1).point2(2) ) / 2;
+            return;
         end
+
+        % Calc line combination indeces
+        %FIXME: returns empty mat when only one line
+        lnCmbInd = uint8 ( combnk(1:size(glines,2),2) );
+
+        for ( i = 1:size(lnCmbInd,1) )
+            c0 = glines( lnCmbInd(i,1) ).c;
+            m0 = glines( lnCmbInd(i,1) ).m;
+            c1 = glines( lnCmbInd(i,2) ).c;
+            m1 = glines( lnCmbInd(i,2) ).m;
+
+            % Intersections
+            xint = (c1-c0)/(m0-m1);
+            yint = (c0*m1 - c1*m0)/(m1-m0);
+
+            if ( xint < imgSize(2) && xint > 0 ...
+                 && yint < imgSize(1) && yint > 0 )
+                intscts = vertcat ( intscts, [ xint, yint ] );
+
+            else
+                % This is painful: We can't simply ignore the lines that
+                % do not intersect because we could end up with situations
+                % where there are no intersects. To address this, we
+                % create two lines from the opposing points of the two
+                % non-intersecting lines. These new lines WILL intersect.
+                intscts = vertcat ( intscts, ...
+                        getAlternativeIntersect ( glines(lnCmbInd(i,1)), ...
+                                                  glines(lnCmbInd(i,2)) ) );
+            end
+        end
+
+        intMeans.X = mean(intscts(:,1));
+        intMeans.Y = mean(intscts(:,2));
+
     end
 
     function altIntsct = getAlternativeIntersect ( line1, line2 )
