@@ -44,12 +44,96 @@ function laticeLines = getLatticeLines ( img, numHLns, numVLns )
     [hlns, vlns] = getLines ( blured, 0.1 );
 
     hlnsGroups = groupLines ( hlns, numHLns );
-    %vlnsGroups = groupLines ( vlns, numVLns );
+    vlnsGroups = groupLines ( vlns, numVLns );
+
+    hlnsGroups = calcRepresentantLines ( hlnsGroups, size(img) );
+    vlnsGroups = calcRepresentantLines ( vlnsGroups, size(img) );
+
+
 
     laticeLines = hlnsGroups;
 
-    %drawLines ( [vlns], img );
+    drawLines ( [vlns, hlns], img );
 end
+
+% Important assumptions
+% 1) We assume that the mean intersection points of all the group will give us
+%    good approximation of where the real line is supposed to cross.
+% 2) We assume that the median of all the slopes of the lines is a good
+%    approximation.
+%
+% retLnsG: is the same lnsGroups structure but with additional values
+%          representing the new found line.
+% imgSize: We use this to make sure that all calcs are within the image.
+%
+% Steps:
+% 1) Calculate slope and c for all lines
+% 2) Calc slope median of group lines
+% 3) Calculate the mean of the totality of line intersections.
+% 4) Deduce c of the representant line.
+function retLnsG = calcRepresentantLines ( lnsGroups, imgSize )
+    retLnsG = lnsGroups;
+
+    % 1) Calculate slope and c for all lines.
+    for ( lg = 1:size(retLnsG, 2) )
+        slopeMeds = [];
+        for ( l = 1:size(retLnsG(lg), 2) )
+            m = retLnsG(lg).lnsGroups(l).point1 ...
+                - retLnsG(lg).lnsGroups(l).point2;
+            m = m(2) / m(1);
+            c = m * retLnsG(lg).lnsGroups(l).point2(2) ...
+                + retLnsG(lg).lnsGroups(l).point2(1);
+            retLnsG(lg).lnsGroups(l).m = m;
+            retLnsG(lg).lnsGroups(l).c = c;
+
+            slopeMeds(l) = m;
+        end
+
+        % 2) Calc slope median of group lines
+        lineSlope = median(slopeMeds);
+        retLnsG(lg).groupLn.slope = lineSlope;
+
+        % 3) Calculate the mean of the totality of line intersections.
+        lineInt = calcGroupIntersections ( retLnsG(lg), imgSize );
+        retLnsG(lg).groupLn.intersect = pointInt;
+
+        % 4) Deduce c of the representant line.
+        retLnsG(lg).groupLn.c = pointInt.Y - (lineSlope*pointInt.X);
+
+        %FIXME: Should we calculate the img border crossings?
+    end
+
+    % Calculate the mean intersection points between each group line.
+    function intMeans = calcGroupIntersections ( lnGroup, imgSize )
+        k = 1;
+        for ( i = 1:(size(lnGroup,2)-1) )
+            for ( j = (i+1):size(lnGroup,2) )
+                c0 = lnGroup(i).c;
+                m0 = lnGroup(i).m;
+                c1 = lnGroup(j).c;
+                m0 = lnGroup(j).m;
+
+                % FIXME: Check this!!!!
+                % Intersections
+                xint = (c1-c0)/(m0-m1);
+                yint = (c1*m0 + c0*m1)/(m1-m0);
+
+                % Only intersections in the image.
+                if ( xint > imgSize(2) || xint < 1 ...
+                    || yint > imgSize(1) || yint < 1 )
+                    continue;
+                end
+
+                intersections(k,1) = xint;
+                intersections(k,2) = yint;
+            end
+
+            intMeans.X = mean(intersections(:,1));
+            intMeans.Y = mean(intersections(:,2));
+        end
+    end
+end
+
 
 % Important assumptions:
 % 1) Lines describing the same edge in the image will have similar bin value
