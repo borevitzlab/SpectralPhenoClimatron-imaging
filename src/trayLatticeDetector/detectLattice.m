@@ -25,19 +25,14 @@ function coordinates = detectLattice ( lat, latImg )
     latImg = rgb2gray ( latImg );
 
     coordinates = ...
-        getLatticeLines ( latImg, latNumHorizontalLns, latNumVerticalLns );
+        getLatIntersections ( latImg, latNumHorizontalLns, latNumVerticalLns );
 
 end
 
-% Returns a list of lines that make up the borders of the lattice.
-% Within these lines there will be pots.
-%FIXME: change the name of this function.
-%
-% img: 
+% img:
 % numHlns: number of horizontal lines
 % numVLns: number of vertical lines
-function laticeLines = getLatticeLines ( img, numHLns, numVLns )
-
+function latInt = getLatIntersections ( img, numHLns, numVLns )
     % Try to remove noise. Like the one in the soil.
     blured = imfilter ( img, fspecial('gaussian', 10), 'replicate' );
 
@@ -49,11 +44,25 @@ function laticeLines = getLatticeLines ( img, numHLns, numVLns )
     hlnsGroups = calcRepresentantLines ( hlnsGroups, size(img) );
     vlnsGroups = calcRepresentantLines ( vlnsGroups, size(img) );
 
+    latInt = calcLatticeIntersections ( hlnsGroups, vlnsGroups );
+end
 
+function latInt = calcLatticeIntersections ( hlnsGroups, vlnsGroups )
+    latInt = [];
+    for ( h = 1:size(hlnsGroups,2) )
+        for ( v = 1:size(vlnsGroups,2) )
+            c0 = hlnsGroups(h).groupLn.c;
+            m0 = hlnsGroups(h).groupLn.slope;
+            c1 = vlnsGroups(v).groupLn.c;
+            m1 = vlnsGroups(v).groupLn.slope;
 
-    laticeLines = hlnsGroups;
+            % Intersections
+            xint = (c1-c0)/(m0-m1);
+            yint = (c0*m1 - c1*m0)/(m1-m0);
 
-    drawLines ( [vlns, hlns], img );
+            latInt = vertcat ( latInt, [ xint, yint ] );
+        end
+    end
 end
 
 % Important assumptions
@@ -77,14 +86,14 @@ function retLnsG = calcRepresentantLines ( lnsGroups, imgSize )
     % 1) Calculate slope and c for all lines.
     for ( lg = 1:size(retLnsG, 2) )
         slopeMeds = [];
-        for ( l = 1:size(retLnsG(lg), 2) )
-            m = retLnsG(lg).lnsGroups(l).point1 ...
-                - retLnsG(lg).lnsGroups(l).point2;
+        for ( l = 1:size(retLnsG(lg).lines, 2) )
+            m = retLnsG(lg).lines(l).point1 ...
+                - retLnsG(lg).lines(l).point2;
             m = m(2) / m(1);
-            c = m * retLnsG(lg).lnsGroups(l).point2(2) ...
-                + retLnsG(lg).lnsGroups(l).point2(1);
-            retLnsG(lg).lnsGroups(l).m = m;
-            retLnsG(lg).lnsGroups(l).c = c;
+            c = retLnsG(lg).lines(l).point2(2) ...
+                    - ( m * retLnsG(lg).lines(l).point2(1) );
+            retLnsG(lg).lines(l).m = m;
+            retLnsG(lg).lines(l).c = c;
 
             slopeMeds(l) = m;
         end
@@ -94,43 +103,103 @@ function retLnsG = calcRepresentantLines ( lnsGroups, imgSize )
         retLnsG(lg).groupLn.slope = lineSlope;
 
         % 3) Calculate the mean of the totality of line intersections.
-        lineInt = calcGroupIntersections ( retLnsG(lg), imgSize );
-        retLnsG(lg).groupLn.intersect = pointInt;
+        lineInt = calcGroupIntersections ( retLnsG(lg).lines, imgSize );
+        retLnsG(lg).groupLn.intersect = lineInt;
 
         % 4) Deduce c of the representant line.
-        retLnsG(lg).groupLn.c = pointInt.Y - (lineSlope*pointInt.X);
+        retLnsG(lg).groupLn.c = lineInt.Y - (lineSlope*lineInt.X);
 
         %FIXME: Should we calculate the img border crossings?
     end
 
-    % Calculate the mean intersection points between each group line.
-    function intMeans = calcGroupIntersections ( lnGroup, imgSize )
+    % Calculate the mean intersection points between each group of lines.
+    function intMeans = calcGroupIntersections ( glines, imgSize )
         k = 1;
-        for ( i = 1:(size(lnGroup,2)-1) )
-            for ( j = (i+1):size(lnGroup,2) )
-                c0 = lnGroup(i).c;
-                m0 = lnGroup(i).m;
-                c1 = lnGroup(j).c;
-                m0 = lnGroup(j).m;
+        intMeans.X = 0;
+        intMeans.Y = 0;
+        intscts = [];
+        for ( i = 1:(size(glines,2)-1) )
+            for ( j = (i+1):size(glines,2) )
+                c0 = glines(i).c;
+                m0 = glines(i).m;
+                c1 = glines(j).c;
+                m1 = glines(j).m;
 
-                % FIXME: Check this!!!!
                 % Intersections
                 xint = (c1-c0)/(m0-m1);
-                yint = (c1*m0 + c0*m1)/(m1-m0);
+                yint = (c0*m1 - c1*m0)/(m1-m0);
 
-                % Only intersections in the image.
-                if ( xint > imgSize(2) || xint < 1 ...
-                    || yint > imgSize(1) || yint < 1 )
-                    continue;
+                if ( xint < imgSize(2) && xint > 0 ...
+                     && yint < imgSize(1) && yint > 0 )
+                    intscts = vertcat ( intscts, [ xint, yint ] );
+
+                else
+                    % This is painful: We can't simply ignore the lines that
+                    % do not intersect because we could end up with situations
+                    % where there are no intersects. To address this, we
+                    % create two lines from the opposing points of the two
+                    % non-intersecting lines. These new lines WILL intersect.
+                    intscts = vertcat ( intscts, ...
+                            getAlternativeIntersect ( glines(i), glines(j) ) );
                 end
 
-                intersections(k,1) = xint;
-                intersections(k,2) = yint;
             end
 
-            intMeans.X = mean(intersections(:,1));
-            intMeans.Y = mean(intersections(:,2));
+            intMeans.X = mean(intscts(:,1));
+            intMeans.Y = mean(intscts(:,2));
+
         end
+    end
+
+    function altIntsct = getAlternativeIntersect ( line1, line2 )
+
+        % Dist from point 1 of line one to point 1 of line 2
+        dist1121 = sqrt ( (line1.point1(2) - line2.point1(2))^2 ...
+                          + (line1.point1(1) - line2.point1(1))^2 );
+
+        % Dist from point 1 of line one to point 2 of line 2
+        dist1122 = sqrt ( (line1.point1(2) - line2.point2(2))^2 ...
+                          + (line1.point1(1) - line2.point2(1))^2 );
+
+        % Define the four points of the two 'new' lines.
+        if ( dist1121 > dist1122 )
+            tmpLine1.point1 = line1.point1;
+            tmpLine1.point2 = line2.point1;
+            tmpLine2.point1 = line1.point2;
+            tmpLine2.point2 = line2.point2;
+
+        elseif ( dist1121 < dist1122 )
+            tmpLine1.point1 = line1.point1;
+            tmpLine1.point2 = line2.point2;
+            tmpLine2.point1 = line1.point2;
+            tmpLine2.point2 = line2.point1;
+
+        else
+            error('Could not calculate an intersection for line group');
+        end
+
+        % Calc slope and c for the two 'new' lines.
+        % slope = (y1-y2)/(x1-x2);
+        % c = y - m*x;
+        tmpLine1.m = tmpLine1.point1 - tmpLine1.point2;
+        tmpLine1.m = tmpLine1.m(2) / tmpLine1.m(1);
+        tmpLine1.c = tmpLine1.point2(2) - tmpLine1.m * tmpLine1.point2(1);
+
+        tmpLine2.m = tmpLine2.point1 - tmpLine2.point2;
+        tmpLine2.m = tmpLine2.m(2) / tmpLine2.m(1);
+        tmpLine2.c = tmpLine2.point2(2) - tmpLine2.m * tmpLine2.point2(1);
+
+        % Calc intersect.
+        c0 = tmpLine1.c;
+        m0 = tmpLine1.m;
+        c1 = tmpLine2.c;
+        m1 = tmpLine2.m;
+
+        % Intersections
+        xint = (c1-c0)/(m0-m1);
+        yint = (c0*m1 - c1*m0)/(m1-m0);
+
+        altIntsct = [xint, yint];
     end
 end
 
