@@ -1,11 +1,11 @@
 function coordinates = detectLattice ( lat, latImg )
     % lat: binary matrix that represents the lattice that is the tray in an
-    % image. Each matrix cell is a pot; 1 means pot present, 0 means no pot in
-    % that position.
-    % img : Path to the image containing the lattice.
+    %      image. Each matrix cell is a pot; 1 means pot present, 0 means no
+    %      pot in that position.
+    % latImg : Path to the image containing the lattice.
     % coordinates : Are the coordinates for all the intersecting points of the
-    % latice. There will be (n+1)X(m+1) coordinates where n and m are the
-    % dimension sizes for lat.
+    %               latice. There will be (n+1)X(m+1) coordinates where n and
+    %               m are the dimension sizes for lat.
 
     % Constant used to avoid devide by zero errors.
     global divByZeroConst;
@@ -26,24 +26,26 @@ function coordinates = detectLattice ( lat, latImg )
         error ( 'detectLattice expects a 3D numeric matrix' );
     end
 
+    % We don't care about color. Remove noise with blur.
     latImg = rgb2gray ( latImg );
+    latImg = imfilter ( latImg, fspecial('gaussian', 10), 'replicate' );
 
-    % Try to remove noise. Like the one in the soil.
-    blured = imfilter ( latImg, fspecial('gaussian', 10), 'replicate' );
+    % Detect all horizontal and vertical lines in latImg
+    [hlns, vlns] = getLines ( latImg, 0.1 );
 
-    [hlns, vlns] = getLines ( blured, 0.1 );
-
+    % Create group structures with horizontal and vertical lines.
     hlnsGroups = groupLines ( hlns, latNumHLns );
     vlnsGroups = groupLines ( vlns, latNumVLns );
 
+    % For each group select a representant line.
     hlnsGroups = calcRepresentantLines ( hlnsGroups, size(img) );
     vlnsGroups = calcRepresentantLines ( vlnsGroups, size(img) );
 
+    % Intersect all representant lines and return intersect coordinates.
     coordinates = calcLatticeIntersections ( hlnsGroups, vlnsGroups );
 
-    drawLines( [hlns, vlns], img );
-
-
+    %FIXME: We can futher adjust the coordinates by making them look more like
+    %       the argument lat.
 end
 
 % No important assumptions.
