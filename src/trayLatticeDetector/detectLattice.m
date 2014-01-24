@@ -7,6 +7,10 @@ function coordinates = detectLattice ( lat, latImg )
     % latice. There will be (n+1)X(m+1) coordinates where n and m are the
     % dimension sizes for lat.
 
+    % Constant used to avoid devide by zero errors.
+    global divByZeroConst;
+    divByZeroConst = 10^-10;
+
     %FIXME: check the input argument
     latNumRows = size(lat, 1);
     latNumHorizontalLns = latNumRows + 1;
@@ -45,9 +49,12 @@ function latInt = getLatIntersections ( img, numHLns, numVLns )
     vlnsGroups = calcRepresentantLines ( vlnsGroups, size(img) );
 
     latInt = calcLatticeIntersections ( hlnsGroups, vlnsGroups );
+
+    drawLines( [hlns, vlns], img );
 end
 
 function latInt = calcLatticeIntersections ( hlnsGroups, vlnsGroups )
+    global divByZeroConst;
     latInt = [];
     for ( h = 1:size(hlnsGroups,2) )
         for ( v = 1:size(vlnsGroups,2) )
@@ -57,8 +64,8 @@ function latInt = calcLatticeIntersections ( hlnsGroups, vlnsGroups )
             m1 = vlnsGroups(v).groupLn.slope;
 
             % Intersections
-            xint = (c1-c0)/(m0-m1);
-            yint = (c0*m1 - c1*m0)/(m1-m0);
+            xint = (c1-c0)/ ( (m0-m1) + divByZeroConst );
+            yint = (c0*m1 - c1*m0)/ ( (m1-m0) + divByZeroConst );
 
             latInt = vertcat ( latInt, [ xint, yint ] );
         end
@@ -114,6 +121,7 @@ function retLnsG = calcRepresentantLines ( lnsGroups, imgSize )
 
     % Calculate the mean intersection points between each group of lines.
     function intMeans = calcGroupIntersections ( glines, imgSize )
+        global divByZeroConst;
         k = 1;
         intMeans.X = 0;
         intMeans.Y = 0;
@@ -140,8 +148,8 @@ function retLnsG = calcRepresentantLines ( lnsGroups, imgSize )
             m1 = glines( lnCmbInd(i,2) ).m;
 
             % Intersections
-            xint = (c1-c0)/(m0-m1);
-            yint = (c0*m1 - c1*m0)/(m1-m0);
+            xint = (c1-c0)/( (m0-m1) + divByZeroConst );
+            yint = (c0*m1 - c1*m0)/ ( (m1-m0) + divByZeroConst );
 
             if ( xint < imgSize(2) && xint > 0 ...
                  && yint < imgSize(1) && yint > 0 )
@@ -165,6 +173,7 @@ function retLnsG = calcRepresentantLines ( lnsGroups, imgSize )
     end
 
     function altIntsct = getAlternativeIntersect ( line1, line2 )
+        global divByZeroConst;
 
         % Dist from point 1 of line one to point 1 of line 2
         dist1121 = sqrt ( (line1.point1(2) - line2.point1(2))^2 ...
@@ -192,25 +201,19 @@ function retLnsG = calcRepresentantLines ( lnsGroups, imgSize )
         end
 
         % Calc slope and c for the two 'new' lines.
-        % slope = (y1-y2)/(x1-x2);
-        % c = y - m*x;
-        tmpLine1.m = tmpLine1.point1 - tmpLine1.point2;
-        tmpLine1.m = tmpLine1.m(2) / tmpLine1.m(1);
-        tmpLine1.c = tmpLine1.point2(2) - tmpLine1.m * tmpLine1.point2(1);
+        % slope = (y1-y2)/(x1-x2); c = y - m*x;
+        % Multiply by 10^-10 to avoid division by 0
+        m0 = tmpLine1.point1 - tmpLine1.point2;
+        m0 = m0(2) / ( m0(1) + divByZeroConst );
+        c0 = tmpLine1.point2(2) - m0 * tmpLine1.point2(1);
 
-        tmpLine2.m = tmpLine2.point1 - tmpLine2.point2;
-        tmpLine2.m = tmpLine2.m(2) / tmpLine2.m(1);
-        tmpLine2.c = tmpLine2.point2(2) - tmpLine2.m * tmpLine2.point2(1);
-
-        % Calc intersect.
-        c0 = tmpLine1.c;
-        m0 = tmpLine1.m;
-        c1 = tmpLine2.c;
-        m1 = tmpLine2.m;
+        m1 = tmpLine2.point1 - tmpLine2.point2;
+        m1 = m1(2) / ( m1(1) + divByZeroConst );
+        c1 = tmpLine2.point2(2) - m1 * tmpLine2.point2(1);
 
         % Intersections
-        xint = (c1-c0)/(m0-m1);
-        yint = (c0*m1 - c1*m0)/(m1-m0);
+        xint = (c1-c0)/ ( (m0-m1) + divByZeroConst );
+        yint = (c0*m1 - c1*m0)/ ( (m1-m0) + divByZeroConst );
 
         altIntsct = [xint, yint];
     end
