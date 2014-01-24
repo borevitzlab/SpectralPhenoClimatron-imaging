@@ -13,13 +13,13 @@ function coordinates = detectLattice ( lat, latImg )
 
     %FIXME: check the input argument
     latNumRows = size(lat, 1);
-    latNumHorizontalLns = latNumRows + 1;
+    latNumHLns = latNumRows + 1;
 
     latNumCols = size(lat, 2);
-    latNumVerticalLns = latNumCols + 1;
+    latNumVLns = latNumCols + 1;
 
     % Number of coordinates needed to create a lattice for lat
-    numCoor = latNumHorizontalLns*latNumVerticalLns;
+    numCoor = latNumHLns*latNumVLns;
 
     % Check to see if its a matrix of numeric values with 3 dims.
     if ( ~isnumeric(latImg) || size(size(latImg),2) ~= 3 )
@@ -28,29 +28,22 @@ function coordinates = detectLattice ( lat, latImg )
 
     latImg = rgb2gray ( latImg );
 
-    coordinates = ...
-        getLatIntersections ( latImg, latNumHorizontalLns, latNumVerticalLns );
-
-end
-
-% img:
-% numHlns: number of horizontal lines
-% numVLns: number of vertical lines
-function latInt = getLatIntersections ( img, numHLns, numVLns )
     % Try to remove noise. Like the one in the soil.
-    blured = imfilter ( img, fspecial('gaussian', 10), 'replicate' );
+    blured = imfilter ( latImg, fspecial('gaussian', 10), 'replicate' );
 
     [hlns, vlns] = getLines ( blured, 0.1 );
 
-    hlnsGroups = groupLines ( hlns, numHLns );
-    vlnsGroups = groupLines ( vlns, numVLns );
+    hlnsGroups = groupLines ( hlns, latNumHLns );
+    vlnsGroups = groupLines ( vlns, latNumVLns );
 
     hlnsGroups = calcRepresentantLines ( hlnsGroups, size(img) );
     vlnsGroups = calcRepresentantLines ( vlnsGroups, size(img) );
 
-    latInt = calcLatticeIntersections ( hlnsGroups, vlnsGroups );
+    coordinates = calcLatticeIntersections ( hlnsGroups, vlnsGroups );
 
     drawLines( [hlns, vlns], img );
+
+
 end
 
 function latInt = calcLatticeIntersections ( hlnsGroups, vlnsGroups )
