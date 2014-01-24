@@ -46,9 +46,19 @@ function coordinates = detectLattice ( lat, latImg )
 
 end
 
+% No important assumptions.
+%
+% hlnsGroups = Horizontal lines in the groups structure
+% vlnsGroups = Likewise but the vertical lines.
+% latInt = Returns a 2 column vector with the intersections coordinates in
+%          each row.
+%
+% steps:
+% 1) Calculate the intersections by looking at the combinations
 function latInt = calcLatticeIntersections ( hlnsGroups, vlnsGroups )
     global divByZeroConst;
     latInt = [];
+    % 1) Calculate the intersections by looking at the combinations
     for ( h = 1:size(hlnsGroups,2) )
         for ( v = 1:size(vlnsGroups,2) )
             c0 = hlnsGroups(h).groupLn.c;
