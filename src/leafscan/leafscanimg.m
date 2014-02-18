@@ -4,17 +4,29 @@ function [area, circleC, circleR] = leafscanimg ( imgpath )
     img = rgb2gray(imread(imgpath));
 
     CC = {};
+
+    % Rectangle where we do our analysis. (should be the back lit rect)
+    yfrom = 1;
+    yto = size(img, 1);
+    xfrom = 1;
+    xto = size(img, 2);
+
     % 0.5, and 0.05 are arbitrary
     for (i = 0.5:0.05:1)
 
         % apply threshold
         bwimg = im2bw(img, i);
 
+        % Try to find back lit section
+        [yfrom, yto, xfrom, xto] =  largestCCEnclosingRect ( bwimg, 4 );
+        bwimg = bwimg( yfrom:yto, xfrom:xto );
+
         % Get rid of noise. 5 is size of structuring element.
         bwimg = imclose(bwimg, ones(5));
 
         % bwconncomp works when white is foreground
         bwimg = abs(bwimg - 1);
+        bwimg = imclearborder(bwimg);
 
         % connectivity is 4.
         cc = bwconncomp(bwimg, 4);
@@ -65,9 +77,41 @@ function [area, circleC, circleR] = leafscanimg ( imgpath )
     % Calculate Enclosing circle for leaf
     [leaf.circleC, leaf.circleR] = minboundcircle ( leaf.pixels(:,1), ...
                                                     leaf.pixels(:,2) );
+    leaf.circleC(1) = leaf.circleC(1) + xfrom;
+    leaf.circleC(2) = leaf.circleC(2) + yfrom;
 
     area = leaf.cmArea;
     circleC = leaf.circleC;
     circleR = leaf.circleR;
 
+end
+
+% Returns the from/to indeces that we need to crop out the largest connected
+% component. This basically describes a rectangle.
+function [yfrom, yto, xfrom, xto] = largestCCEnclosingRect ( img, connectivity )
+
+    % We have an aggressive close as we want to get rid of as much noise as
+    % possible. This wont affect area calcs as we only use this closed image
+    % to identify the lit part.
+    img = imclose(img, ones(11));
+
+    % Find connected component
+    cc = bwconncomp(img, connectivity);
+
+    if ( cc.NumObjects > 0 )
+        % Find the index of the larges connected component
+        areas = regionprops(cc, 'Area');
+        [C, I]= max([areas.Area]);
+
+        % Return bounding box of largest connected component
+        bb = regionprops(cc, 'BoundingBox');
+        rect = int64(bb(I).BoundingBox);
+    elseif ( cc.NumObjects == 0 )
+        rect = int64([1 1 size(img,2) size(img,1)]);
+    end
+
+    yfrom = rect(2);
+    yto = rect(2)+rect(4)-1; %-1 because Matlab starts index at 1
+    xfrom = rect(1);
+    xto = rect(1)+rect(3)-1;
 end
