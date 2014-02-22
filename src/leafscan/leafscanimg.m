@@ -34,6 +34,10 @@ function [area, circleC, circleR] = leafscanimg ( imgpath )
         % Save the highest threshold that created only two connected components.
         if ( cc.NumObjects == 2 )
             CC = cc;
+            CC.yfrom = yfrom;
+            CC.yto = yto;
+            CC.xfrom = xfrom;
+            CC.xto = xto;
         end
     end
 
@@ -77,8 +81,8 @@ function [area, circleC, circleR] = leafscanimg ( imgpath )
     % Calculate Enclosing circle for leaf
     [leaf.circleC, leaf.circleR] = minboundcircle ( leaf.pixels(:,1), ...
                                                     leaf.pixels(:,2) );
-    leaf.circleC(1) = leaf.circleC(1) + xfrom;
-    leaf.circleC(2) = leaf.circleC(2) + yfrom;
+    leaf.circleC(1) = leaf.circleC(1) + CC.xfrom;
+    leaf.circleC(2) = leaf.circleC(2) + CC.yfrom;
 
     area = leaf.cmArea;
     circleC = leaf.circleC;
