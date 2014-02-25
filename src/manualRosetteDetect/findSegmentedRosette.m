@@ -29,17 +29,23 @@ end
 
 % Classification with k=2.
 %
-% Important assumptions: Here we assume that individual plants make most part
-% of the kimg. This will ensure that one of the means that k-means find is
-% part of the plant green.
+% Important assumptions:
+% Here we assume that individual plants make most part of the kimg. This will
+% ensure that one of the means that k-means find is part of the plant green.
 %
+% Arguments:
 % kimg is a 3D matrix (rgb image).
 % M is the starting means. [0 1] should be ok.
 % convRatio is the convergence ratio. 0.01 should be ok.
 % maxIter are the maximum number of iterations. 10 should be ok.
+%
+% Steps:
+% 1. Convert To Excess Green
+% 2. Separate pixels into two classes.
+% 3. Return mask
 function retMask = getKMeansMask ( kimg, M, convRatio, maxIter )
 
-    % convert to Excess Green 
+    % 1. Convert To Excess Green
     kimg = double(kimg);
     kimg = kimg(:,:,2)*2 - kimg(:,:,1) - kimg(:,:,3);
 
@@ -47,10 +53,18 @@ function retMask = getKMeansMask ( kimg, M, convRatio, maxIter )
     kimg = kimg + abs(min(min(kimg)));
     kimg = kimg/max(max(kimg));
 
+    % 2. Separate pixels into two classes.
     imgvec = reshape(kimg, 1, size(kimg,1)*size(kimg,2));
     retMask = getKMeansVecMask ( imgvec, M, convRatio, maxIter );
+
+    % 3. Return mask
     retMask = reshape ( retMask, size(kimg,1), size(kimg,2) );
 
+    % Steps:
+    % 1. Create two groups: a)closest to M(1) and b) closest to M(2)
+    % 2. Calculate mean of each group.
+    % 3. End if change in mean is very small.
+    % 4. Return mask of the bigger mean.
     function retVal = getKMeansVecMask ( vec, M, convRatio, maxIter )
         % keep track of the previous means.
         Mprev = M;
@@ -60,14 +74,15 @@ function retMask = getKMeansMask ( kimg, M, convRatio, maxIter )
         near22 = []; %pixels near to M(2)
 
         for ( i = 1:maxIter )
-            % calculate the distances to both means.
+            % 1. Create two groups: a)closest to M(1) and b) closest to M(2)
             near21 = abs(vec - M(1)) < abs(vec - M(2));
             near22 = ~near21;
 
-            % calculate new means
+            % 2. Calculate mean of each group.
             M(1) = sum( vec( near21 ) ) / sum(near21);
             M(2) = sum( vec( near22 ) ) / sum(near22);
 
+            % 3. End if change in mean is very small.
             if ( pdist([Mprev(1) Mprev(2): M(1) M(2)]) < convRatio )
                 break;
             end
@@ -75,8 +90,7 @@ function retMask = getKMeansMask ( kimg, M, convRatio, maxIter )
             Mprev = M;
         end
 
-        % We are interested in the mean that is greater. In Excess green, green
-        % gives that greater response.
+        % 4. Return mask of the bigger mean.
         retVal = near22;
         if ( M(1) > M(2) )
             retVal = near21;
