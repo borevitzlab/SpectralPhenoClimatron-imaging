@@ -57,6 +57,9 @@ function annotation_gui_OpeningFcn(hObject, eventdata, handles, varargin)
     % Update handles structure
     guidata(hObject, handles);
 
+    % We make the user choose a file immediately
+    put_image_in_axis (hObject);
+
 % --- Outputs from this function are returned to the command line.
 function varargout = annotation_gui_OutputFcn(hObject, eventdata, handles)
     % Get default command line output from handles structure
@@ -67,7 +70,6 @@ function exit_Callback(hObject, eventdata, handles)
     close(handles.figure1);
     %exit;
 
-%
 % --- Called when an image needs to be uploaded to an axis.
 function put_image_in_axis (hObject)
     %initialize handles.
