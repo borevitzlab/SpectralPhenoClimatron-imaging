@@ -261,3 +261,9 @@ function figure1_WindowButtonUpFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
     % Nothing for now
 
+
+% --- Executes on button press in segment.
+function segment_Callback(hObject, eventdata, handles)
+% hObject    handle to segment (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
