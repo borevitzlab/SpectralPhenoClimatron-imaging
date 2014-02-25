@@ -65,8 +65,7 @@ function varargout = annotation_gui_OutputFcn(hObject, eventdata, handles)
 % --- Executes on button press in exit.
 function exit_Callback(hObject, eventdata, handles)
     close(handles.figure1);
-    exit;
-
+    %exit;
 
 %
 % --- Called when an image needs to be uploaded to an axis.
