@@ -69,23 +69,30 @@ function exit_Callback(hObject, eventdata, handles)
 
 %
 % --- Called when an image needs to be uploaded to an axis.
-% input_image   is the string that references the image
-% axis_handler  the handler use as parent of the image
-function put_image_in_axis (input_image, axis_handler, hObject)
+function put_image_in_axis (hObject)
     %initialize handles.
     handles = guidata(hObject);
 
-    if exist (char(input_image)) > 0
+    imagetypes = '*.gif;*.jpg;*.png;*.jpeg,*.GIF;*.JPG;*.PNG;*.JPEG';
+    [filename, pathname, filterindex] =...
+        uigetfile(imagetypes, 'Pick an image file',...
+        'MultiSelect', 'off', handles.current_dir);
+
+    if ( ~ischar(filename) || ~ischar(pathname) )
+        return; % We cannot add the image
+    end
+
+    input_image = fullfile(pathname, filename);
+    if ( exist (char(input_image)) > 0 )
         img = imread(char(input_image));
 
         % Changes with every img. width/height
         handles.imgRatio = size(img,2)/size(img,1);
-        image(img, 'Parent', axis_handler);
+        image(img, 'Parent', handles.image_axis);
 
     else
         msgboxText{1} =  strcat('File not found: ', input_image);
         msgbox(msgboxText,'File Not Found', 'error');
-        retimg = 0;
     end
 
     % Remember to save the changes.
@@ -150,15 +157,7 @@ function figure1_WindowKeyPressFcn(hObject, eventdata, handles)
 %	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
 % handles    structure with handles and user data (see GUIDATA)
     if ( strcmp(eventdata.Key, 'l') == 1 || strcmp(eventdata.Key, 'L') == 1 )
-        imagetypes = '*.gif;*.jpg;*.png;*.jpeg,*.GIF;*.JPG;*.PNG;*.JPEG';
-        [filename, pathname, filterindex] =...
-            uigetfile(imagetypes, 'Pick an image file',...
-            'MultiSelect', 'off', handles.current_dir);
-
-        if ischar(filename) && ischar(pathname)
-            put_image_in_axis (fullfile(pathname,filename),...
-                    handles.image_axis, hObject);
-        end
+        put_image_in_axis ( hObject );
     end
 
     if ( strcmp ( eventdata.Modifier, 'control' ) == 1 )
@@ -231,7 +230,6 @@ function figure1_WindowButtonDownFcn(hObject, eventdata, handles)
 
         set( lh, 'ButtonDownFcn',...
              @(src,event)button_press_on_line(src, event, lh));
-
     end
 
     % Remember to save the changes.
