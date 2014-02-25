@@ -14,13 +14,13 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-function varargout = annotation_gui(varargin)
+function varargout = rosettedetect_gui(varargin)
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
     gui_State = struct('gui_Name',       mfilename, ...
                        'gui_Singleton',  gui_Singleton, ...
-                       'gui_OpeningFcn', @annotation_gui_OpeningFcn, ...
-                       'gui_OutputFcn',  @annotation_gui_OutputFcn, ...
+                       'gui_OpeningFcn', @rosettedetect_gui_OpeningFcn, ...
+                       'gui_OutputFcn',  @rosettedetect_gui_OutputFcn, ...
                        'gui_LayoutFcn',  [] , ...
                        'gui_Callback',   []);
     if nargin && ischar(varargin{1})
@@ -35,10 +35,10 @@ function varargout = annotation_gui(varargin)
     % End initialization code - DO NOT EDIT
 
 
-% --- Executes just before annotation_gui is made visible.
-function annotation_gui_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before rosettedetect_gui is made visible.
+function rosettedetect_gui_OpeningFcn(hObject, eventdata, handles, varargin)
 
-    % Choose default command line output for annotation_gui
+    % Choose default command line output for rosettedetect_gui
     handles.output = hObject;
 
     % This is where we will initialize the gui specific data structures.
@@ -61,7 +61,7 @@ function annotation_gui_OpeningFcn(hObject, eventdata, handles, varargin)
     put_image_in_axis (hObject);
 
 % --- Outputs from this function are returned to the command line.
-function varargout = annotation_gui_OutputFcn(hObject, eventdata, handles)
+function varargout = rosettedetect_gui_OutputFcn(hObject, eventdata, handles)
     % Get default command line output from handles structure
     varargout{1} = handles.output;
 
