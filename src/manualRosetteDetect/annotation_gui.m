@@ -244,9 +244,6 @@ function button_press_on_line(hObject, ~, line_handle)
         delete(line_handle);
     end
 
-    % Remember to save the changes.
-    guidata(hObject, handles);
-
 % --- Executes on mouse press over figure background, over a disabled or
 % --- inactive control, or over an axes background.
 function figure1_WindowButtonUpFcn(hObject, eventdata, handles)
