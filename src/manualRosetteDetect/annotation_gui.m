@@ -76,12 +76,19 @@ function put_image_in_axis (hObject)
     handles = guidata(hObject);
 
     imagetypes = '*.gif;*.jpg;*.png;*.jpeg,*.GIF;*.JPG;*.PNG;*.JPEG';
-    [filename, pathname, filterindex] =...
-        uigetfile(imagetypes, 'Pick an image file',...
-        'MultiSelect', 'off', handles.current_dir);
+    filename = double(0);
+    pathname = double(0);
 
-    if ( ~ischar(filename) || ~ischar(pathname) )
-        return; % We cannot add the image
+    % Don't accept the user pressing the cancel button.
+    while ( ~ischar(filename) || ~ischar(pathname) )
+        [filename, pathname, filterindex] =...
+            uigetfile(imagetypes, 'Pick an image file',...
+            'MultiSelect', 'off', handles.current_dir);
+
+        if ( ~ischar(filename) || ~ischar(pathname) )
+            msgboxText{1} =  'File name needed: You must select a file.';
+            uiwait(msgbox(msgboxText,'You must select a file.'));
+        end
     end
 
     input_image = fullfile(pathname, filename);
