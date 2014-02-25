@@ -13,16 +13,17 @@
 % You should have received a copy of the GNU General Public License
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-function subimg = findSegmentedRosette ( lh, img )
-   for ( i = 40:5:45 )
+function [subimg, imgOffset] = findSegmentedRosette ( lh, img )
+   for ( i = 40:5:40 )
 
         % rosette center
-        rc = round(lh);
+        rc = uint32(round(lh));
 
         % get a subimg
         subimg = img( rc(2)-i:rc(2)+i , rc(1)-i:rc(1)+i , : );
 
         subimg = getKMeansMask ( subimg, [0 1], 0.01, 10 );
+        imgOffset = [rc(2)-i rc(1)-i];
     end
 end
 

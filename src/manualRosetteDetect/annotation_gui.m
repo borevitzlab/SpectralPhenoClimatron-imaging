@@ -93,11 +93,11 @@ function put_image_in_axis (hObject)
 
     input_image = fullfile(pathname, filename);
     if ( exist (char(input_image)) > 0 )
-        img = imread(char(input_image));
+        handles.img = imread(char(input_image));
 
         % Changes with every img. width/height
-        handles.imgRatio = size(img,2)/size(img,1);
-        image(img, 'Parent', handles.image_axis);
+        handles.imgRatio = size(handles.img,2)/size(handles.img,1);
+        image(handles.img, 'Parent', handles.image_axis);
 
     else
         msgboxText{1} =  strcat('File not found: ', input_image);
@@ -268,3 +268,26 @@ function segment_Callback(hObject, eventdata, handles)
 % hObject    handle to segment (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+    userlines = findobj(handles.figure1,'Type','line');
+    for ( i = 1:size(userlines,1) )
+        [subimg, imgoffset] = ...
+            findSegmentedRosette ( get(userlines(i), 'UserData'),...
+                                   handles.img );
+
+        % -1 to adjust for how matlab indexes arrays.
+        YFrom = imgoffset(1);
+        YTo = imgoffset(1)+size(subimg,1)-1;
+        XFrom = imgoffset(2);
+        XTo = imgoffset(2)+size(subimg,2)-1;
+
+        % create a grayscale for multiplication.
+        si(:,:,1) = uint8(~subimg);
+        si(:,:,2) = uint8(~subimg);
+        si(:,:,3) = uint8(~subimg);
+
+        handles.img(YFrom:YTo, XFrom:XTo, :) = ...
+                handles.img(YFrom:YTo, XFrom:XTo, :) .* si;
+    end
+
+    image(handles.img, 'Parent', handles.image_axis);
