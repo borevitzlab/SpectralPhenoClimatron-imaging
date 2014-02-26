@@ -20,10 +20,23 @@ function [subimg, imgOffset] = findSegmentedRosette ( lh, img )
         rc = uint32(round(lh));
 
         % get a subimg
+        imgOffset = [rc(2)-i rc(1)-i];
         subimg = img( rc(2)-i:rc(2)+i , rc(1)-i:rc(1)+i , : );
 
         subimg = getKMeansMask ( subimg, [0 1], 0.01, 10 );
-        imgOffset = [rc(2)-i rc(1)-i];
+
+        % Uses morphological close to remove small noise responses.  Struct
+        % element is a disk. Will bring close connected components together.
+        se = strel('disk', 3);
+        subimg = imclose(subimg, se);
+
+        % Checks the sides of subimg for pixels greater than 0. We stop if no
+        % edge pixel is greater than 0;
+        if ( ( sum(subimg(:,1)) + sum(subimg(1,:))...
+               + sum(subimg(size(subimg,1),:)) ...
+               + sum(subimg(:,size(subimg,2))) ) == 0 )
+            break;
+        end
     end
 end
 
