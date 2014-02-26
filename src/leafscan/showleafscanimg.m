@@ -28,4 +28,13 @@ function showleafscanimg ( imgpath )
     img = imread(imgpath);
     imshow(img);
     rectangle ( 'Position', [c(1)-r c(2)-r 2*r 2*r], 'Curvature', [1 1] );
+
+    % Write leaf area (cm) on image.
+    areaMsg = strcat ( 'Leaf Area(cm^2): ', num2str(a) );
+    text ( c(1)+r+10, c(2), areaMsg );
+
+    % Write circle radius (cm) on image.
+    radiusMsg = strcat ('Circle Radius(cm): ', num2str(R) );
+    text ( c(1)+r+10, c(2)+30, radiusMsg );
+
 end
