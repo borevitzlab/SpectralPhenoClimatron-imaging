@@ -87,14 +87,11 @@ function [area, circleC, circleR, circleRcm] = leafscanimg ( imgpath )
         leafInd = 1;
     end
 
-    %square.idxList = CC.PixelIdxList{sqrInd};
     square.pixArea = areas(sqrInd).Area;
     square.pixSide = sqrt(square.pixArea);
-    % square.pixels = pixels(sqrInd).PixelList;
     square.cmArea = 4;
     square.cmSide = 2;
 
-    %leaf.idxList = CC.PixelIdxList{leafInd};
     leaf.pixArea = areas(leafInd).Area;
     leaf.pixels = pixels(leafInd).PixelList;
 
