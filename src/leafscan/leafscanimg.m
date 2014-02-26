@@ -1,6 +1,11 @@
 function [area, circleC, circleR] = leafscanimg ( imgpath )
+    if ( exist(imgpath) == 0 )
+        err = MException ( 'leafscan:ImgPathNotFound', ...
+                           strcat ( 'Could not find file ', ...
+                                    imgpath ) );
+        throw(err);
+    end
 
-    %FIXME: Make sure we check path
     img = rgb2gray(imread(imgpath));
 
     CC = {};
