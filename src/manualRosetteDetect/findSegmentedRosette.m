@@ -14,10 +14,10 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 function [subimg, imgOffset] = findSegmentedRosette ( lh, img )
-   for ( i = 40:5:40 )
+   % rosette center
+   rc = uint32(round(lh));
 
-        % rosette center
-        rc = uint32(round(lh));
+   for ( i = 40:5:40 )
 
         % get a subimg
         imgOffset = [rc(2)-i rc(1)-i];
