@@ -15,7 +15,7 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-function [area, circleC, circleR] = leafscanimg ( imgpath )
+function [area, circleC, circleR, circleRcm] = leafscanimg ( imgpath )
     if ( exist(imgpath) == 0 )
         err = MException ( 'leafscan:ImgPathNotFound', ...
                            strcat ( 'Could not find file ', ...
@@ -89,26 +89,33 @@ function [area, circleC, circleR] = leafscanimg ( imgpath )
 
     %square.idxList = CC.PixelIdxList{sqrInd};
     square.pixArea = areas(sqrInd).Area;
+    square.pixSide = sqrt(square.pixArea);
     % square.pixels = pixels(sqrInd).PixelList;
     square.cmArea = 4;
+    square.cmSide = 2;
 
     %leaf.idxList = CC.PixelIdxList{leafInd};
     leaf.pixArea = areas(leafInd).Area;
     leaf.pixels = pixels(leafInd).PixelList;
 
-    % Calculate area proportion (square is 2cm^2)
-    pixProportion = square.cmArea/square.pixArea;
-    leaf.cmArea = pixProportion * leaf.pixArea;
+    % Calculate area proportion (square is (2cm)^2)
+    pixRatioArea = square.cmArea/square.pixArea;
+    leaf.cmArea = pixRatioArea * leaf.pixArea;
+
+    % Calcualate linear proportion (square side is 2cm)
+    pixRatioLine = square.cmSide/square.pixSide;
 
     % Calculate Enclosing circle for leaf
     [leaf.circleC, leaf.circleR] = minboundcircle ( leaf.pixels(:,1), ...
                                                     leaf.pixels(:,2) );
+    leaf.circleRcm = leaf.circleR * pixRatioLine;
     leaf.circleC(1) = leaf.circleC(1) + CC.xfrom;
     leaf.circleC(2) = leaf.circleC(2) + CC.yfrom;
 
     area = leaf.cmArea;
     circleC = leaf.circleC;
     circleR = leaf.circleR;
+    circleRcm = leaf.circleRcm;
 
 end
 

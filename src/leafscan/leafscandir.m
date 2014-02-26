@@ -27,7 +27,7 @@ function leafscandir(lpath)
     fprintf(fd, strcat( '# Result of leafscan of path', lpath, '\n') );
     fprintf(fd, strcat('#Columns: filename,PlantID,',...
                         'ExperimentName,Area(cm^2),',...
-                        'CircleCenter(x,y),Radius\n') );
+                        'CircleCenter(x,y),Radius(pix),Radius(cm)\n') );
 
     filelist = dir(lpath);
     for ( i = 1:size(filelist, 1) )
@@ -44,7 +44,8 @@ function leafscandir(lpath)
                             '_');
 
         try
-            [a, c, r] = leafscanimg(imgpath);
+            % a->area(cm), c->center(pix), r->radius(pix), R->radius(cm)
+            [a, c, r, R] = leafscanimg(imgpath);
             disp ( imgpath );
         catch err
             fprintf(fd, '%s,%s,%s:could not find leaf automatically\n', ...
@@ -55,11 +56,11 @@ function leafscandir(lpath)
             continue;
         end
 
-        fprintf ( fd, '%s,%s,%s,%s,%d,%d,%s\n', ...
+        fprintf ( fd, '%s,%s,%s,%s,%d,%d,%s,%s\n', ...
             filelist(i).name, ...
             char(nameElems.pid{1}), ...
             char(nameElems.exname{1}), ...
-            a, c(1), c(2), r );
+            a, c(1), c(2), r, R );
 
     end
     fclose(fd);

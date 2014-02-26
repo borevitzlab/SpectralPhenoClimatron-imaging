@@ -18,7 +18,7 @@
 function showleafscanimg ( imgpath )
     % Calcualte area, circle center and circle radius
     try
-        [a c r] = leafscanimg ( imgpath );
+        [a c r R] = leafscanimg ( imgpath );
     catch err
         disp ( strcat ( 'Could not find leaf automatically for ', imgpath ) );
         throw(err);
