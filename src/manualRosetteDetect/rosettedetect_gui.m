@@ -271,9 +271,15 @@ function segment_Callback(hObject, eventdata, handles)
 
     userlines = findobj(handles.figure1,'Type','line');
     for ( i = 1:size(userlines,1) )
-        [subimg, imgoffset] = ...
-            findSegmentedRosette ( get(userlines(i), 'UserData'),...
-                                   handles.img );
+        try
+            [subimg, imgoffset] = ...
+                findSegmentedRosette ( get(userlines(i), 'UserData'),...
+                                       handles.img );
+        catch
+            c = get(userlines(i), 'UserData');
+            disp( strcat ( 'Error for: (', num2str(c(1)),...
+                            ',', num2str(c(2)), ').' ) );
+        end
 
         % -1 to adjust for how matlab indexes arrays.
         YFrom = imgoffset(1);
