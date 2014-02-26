@@ -14,11 +14,26 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 function [subimg, imgOffset] = findSegmentedRosette ( lh, img )
-   % rosette center
-   rc = uint32(round(lh));
+    % rosette center
+    rc = uint32(round(lh));
 
-   for ( i = 40:5:40 )
+    % true when we are satified with the mask
+    foundRosette = false;
 
+    % Our square can grow as big as the nearest image edge.
+    maxGrowth = min( [ rc(1)-1 rc(2)-1 ...
+                      abs(size(img,2)-rc(1)) ...
+                      abs(size(img,1)-rc(2)) ] );
+    maxGrowth = maxGrowth - mod(maxGrowth,5); % Next multiple of 5 down.
+    if ( maxGrowth > 100 ) % Only look at part of the image only.
+        maxGrowth = 200;
+    elseif ( maxGrowth < 5 )
+        err = MException( 'findSegmentedRosette:InvalidMaxGrowth', ...
+                          'maxGrowth var was calculated to be less than 5' );
+        throw(err);
+    end
+
+    for ( i = 5:5:maxGrowth )
         % get a subimg
         imgOffset = [rc(2)-i rc(1)-i];
         subimg = img( rc(2)-i:rc(2)+i , rc(1)-i:rc(1)+i , : );
@@ -35,8 +50,16 @@ function [subimg, imgOffset] = findSegmentedRosette ( lh, img )
         if ( ( sum(subimg(:,1)) + sum(subimg(1,:))...
                + sum(subimg(size(subimg,1),:)) ...
                + sum(subimg(:,size(subimg,2))) ) == 0 )
+            foundRosette = true;
             break;
         end
+    end
+
+    if ( ~foundRosette )
+        % Means that we did not find rosette.
+        err = MException( 'findSegmentedRosette:RosetteNotFound', ...
+                          'Could not find a good separation');
+        throw(err);
     end
 end
 
