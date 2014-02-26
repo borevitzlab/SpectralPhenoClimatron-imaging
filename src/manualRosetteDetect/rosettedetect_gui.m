@@ -288,6 +288,8 @@ function segment_Callback(hObject, eventdata, handles)
 
         handles.img(YFrom:YTo, XFrom:XTo, :) = ...
                 handles.img(YFrom:YTo, XFrom:XTo, :) .* si;
+
+        clear('si');
     end
 
     image(handles.img, 'Parent', handles.image_axis);
