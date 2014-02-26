@@ -279,6 +279,7 @@ function segment_Callback(hObject, eventdata, handles)
             c = get(userlines(i), 'UserData');
             disp( strcat ( 'Error for: (', num2str(c(1)),...
                             ',', num2str(c(2)), ').' ) );
+            continue;
         end
 
         % -1 to adjust for how matlab indexes arrays.
