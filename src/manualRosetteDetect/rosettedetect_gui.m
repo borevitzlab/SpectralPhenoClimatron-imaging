@@ -56,9 +56,8 @@ function rosettedetect_gui_OpeningFcn(hObject, eventdata, handles, varargin)
 
     % Update handles structure
     guidata(hObject, handles);
-
-    % We make the user choose a file immediately
-    put_image_in_axis (hObject);
+    handles = put_image_in_axis(hObject);
+    guidata(hObject, handles);
 
 % --- Outputs from this function are returned to the command line.
 function varargout = rosettedetect_gui_OutputFcn(hObject, eventdata, handles)
@@ -71,7 +70,7 @@ function exit_Callback(hObject, eventdata, handles)
     %exit;
 
 % --- Called when an image needs to be uploaded to an axis.
-function put_image_in_axis (hObject)
+function hl = put_image_in_axis (hObject)
     %initialize handles.
     handles = guidata(hObject);
 
@@ -105,6 +104,7 @@ function put_image_in_axis (hObject)
     end
 
     % Remember to save the changes.
+    hl = handles;
     guidata(hObject, handles);
 
 % --- Called when the a button is pressed on the figure/image
@@ -158,15 +158,18 @@ function figure1_ResizeFcn(hObject, eventdata, handles)
     guidata(hObject, handles);
 
 % --- Executes on key press with focus on figure1 or any of its controls.
-function figure1_WindowKeyPressFcn(hObject, eventdata, handles)
+function figure1_WindowKeyPressFcn(hObject, eventdata, hndls)
 % hObject    handle to figure1 (see GCBO)
 % eventdata  structure with the following fields (see FIGURE)
 %	Key: name of the key that was pressed, in lower case
 %	Character: character interpretation of the key(s) that was pressed
 %	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
 % handles    structure with handles and user data (see GUIDATA)
+    %initialize handles.
+    handles = guidata(hObject);
+
     if ( strcmp(eventdata.Key, 'l') == 1 || strcmp(eventdata.Key, 'L') == 1 )
-        put_image_in_axis ( hObject );
+        handles = put_image_in_axis ( hObject );
     end
 
     if ( strcmp ( eventdata.Modifier, 'control' ) == 1 )
@@ -264,10 +267,13 @@ function figure1_WindowButtonUpFcn(hObject, eventdata, handles)
 
 
 % --- Executes on button press in segment.
-function segment_Callback(hObject, eventdata, handles)
+function segment_Callback(hObject, eventdata, hndls)
 % hObject    handle to segment (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+    %initialize handles.
+    handles = guidata(hObject);
+
 
     userlines = findobj(handles.figure1,'Type','line');
     for ( i = 1:size(userlines,1) )
@@ -300,3 +306,6 @@ function segment_Callback(hObject, eventdata, handles)
     end
 
     image(handles.img, 'Parent', handles.image_axis);
+
+    % Remember to save the changes.
+    guidata(hObject, handles);
