@@ -61,6 +61,18 @@ function [subimg, imgOffset] = findSegmentedRosette ( lh, img )
                           'Could not find a good separation');
         throw(err);
     end
+
+    % Minimize the mask to snuggly enclose the connected components. We give a
+    % 1 pixel margin.
+    cc = bwconncomp(subimg, 4);
+    pixList = regionprops(cc, 'PixelList');
+    pl = vertcat(pixList.PixelList);
+    yFrom = min(min(pl(:,2))) - 1;
+    yTo = max(max(pl(:,2))) + 1;
+    xFrom = min(min(pl(:,1))) - 1;
+    xTo = max(max(pl(:,1))) + 1;
+    subimg = subimg ( yFrom:yTo, xFrom:xTo );
+    imgOffset = [ imgOffset(1) + yFrom - 1  imgOffset(2) + xFrom - 1 ];
 end
 
 % Classification with k=2.
