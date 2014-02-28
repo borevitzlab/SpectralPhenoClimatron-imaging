@@ -47,6 +47,9 @@ function rosettedetect_gui_OpeningFcn(hObject, eventdata, handles, varargin)
     % Changes with every img. width/height
     handles.imgRatio = 1.5;
 
+    % Contains all detected rosettes
+    handles.rosettes = [];
+
     handles.zoom = zoom(handles.figure1);
 
     handles.ctr_pressed = 0;
@@ -241,21 +244,13 @@ function segment_Callback(hObject, eventdata, hndls)
     % We want to reuse the original image. paint on a temp one.
     tmpimg = handles.img;
 
+    % Remove all rosettes from cache.
+    handles.rosettes = [];
+
+    % represents the squares in the image.
     userlines = findobj(handles.figure1,'Type','line');
 
-    % This is painful: We want to dray the lines on the new image, but
-    % all line handles are erased once we execute imshow(...). The only
-    % option (that I know of) is to make a 'hard' copy of the lines and
-    % re-paint them after the imshow call.
-    ulscopy = []; % userlines copy
     for ( i = 1:size(userlines,1) )
-        % No matter what happens we copy the line
-        ulscopy(i).xdata = get(userlines(i), 'XData');
-        ulscopy(i).ydata = get(userlines(i), 'YData');
-        ulscopy(i).color = get(userlines(i), 'Color');
-        ulscopy(i).linewidth = get(userlines(i), 'LineWidth');
-        ulscopy(i).userdata = get(userlines(i), 'UserData');
-
         try
             [subimg, imgoffset] = ...
                 findSegmentedRosette ( get(userlines(i), 'UserData'),...
@@ -274,17 +269,25 @@ function segment_Callback(hObject, eventdata, hndls)
         tmpimg ( sub2ind( size(tmpimg), r, c, ...
                           ones(size(c,1), 1) ) ) = 255;
 
-        clear('si');
+        % Cache lines and resulting segmentation in handles.rosettes.
+        handles.rosettes(i).xdata = get(userlines(i), 'XData');
+        handles.rosettes(i).ydata = get(userlines(i), 'YData');
+        handles.rosettes(i).color = get(userlines(i), 'Color');
+        handles.rosettes(i).linewidth = get(userlines(i), 'LineWidth');
+        handles.rosettes(i).userdata = get(userlines(i), 'UserData');
+        handles.rosettes(i).subimg = subimg;
+        handles.rosettes(i).imgoffset = imgoffset;
+
     end
 
     imshow(tmpimg, 'Parent', handles.image_axis);
 
     % Re-draw all lines
-    for ( i = 1:size(ulscopy, 2) )
-        lh = line ( ulscopy(i).xdata, ulscopy(i).ydata, ...
-                    'Color', ulscopy(i).color, ...
-                    'LineWidth', ulscopy(i).linewidth, ...
-                    'UserData', ulscopy(i).userdata );
+    for ( i = 1:size(handles.rosettes, 2) )
+        lh = line ( handles.rosettes(i).xdata, handles.rosettes(i).ydata, ...
+                    'Color', handles.rosettes(i).color, ...
+                    'LineWidth', handles.rosettes(i).linewidth, ...
+                    'UserData', handles.rosettes(i).userdata );
 
         set( lh, 'ButtonDownFcn',...
              @(src,event)button_press_on_line(src, event, lh));
