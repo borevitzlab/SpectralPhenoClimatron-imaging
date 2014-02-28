@@ -262,7 +262,7 @@ function segment_Callback(hObject, eventdata, hndls)
     end
 
     % Analyze handles.img
-    [handles.rosettesm, tmpimg] = analyzeImgRosette ( handles.rosettes, ...
+    [handles.rosettes, tmpimg] = analyzeImgRosette ( handles.rosettes, ...
                                                      handles.img );
     imshow(tmpimg, 'Parent', handles.image_axis);
 
@@ -279,3 +279,43 @@ function segment_Callback(hObject, eventdata, hndls)
 
     % Remember to save the changes.
     guidata(hObject, handles);
+
+
+% --- Executes on button press in show.
+function show_Callback(hObject, eventdata, handles)
+% hObject    handle to show (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    %initialize handles.
+    handles = guidata(hObject);
+
+    imagetypes = '*.gif;*.jpg;*.png;*.jpeg,*.GIF;*.JPG;*.PNG;*.JPEG';
+    pathname = double(0);
+
+    % Don't accept the user pressing the cancel button.
+    while ( ~ischar(pathname) )
+        pathname = uigetdir(handles.current_dir);
+
+        if ( ~ischar(pathname) )
+            msgboxText{1} =  'Directory path needed: You must select a dir.';
+            uiwait(msgbox(msgboxText,'You must select a directory.'));
+        end
+    end
+
+    filelist = dir(pathname);
+    for ( i = 1:5:size(filelist, 1) )
+        fregexp = regexp(filelist(i).name, '.*\.[jpg|JPG|jpeg|JPEG]');
+        if ( size(fregexp, 1) == 0 )
+            continue;
+        end
+
+        imgpath = fullfile ( pathname, filelist(i).name );
+        imgpath
+
+        img = imread(imgpath);
+
+        [handles.rosettesm, img] = analyzeImgRosette ( handles.rosettes,img );
+        imshow(img, 'Parent', handles.image_axis);
+        pause(1);
+    end
+
