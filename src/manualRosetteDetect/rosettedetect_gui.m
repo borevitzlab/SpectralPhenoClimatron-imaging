@@ -239,7 +239,20 @@ function segment_Callback(hObject, eventdata, hndls)
     handles = guidata(hObject);
 
     userlines = findobj(handles.figure1,'Type','line');
+
+    % This is painful: We want to dray the lines on the new image, but
+    % all line handles are erased once we execute imshow(...). The only
+    % option (that I know of) is to make a 'hard' copy of the lines and
+    % re-paint them after the imshow call.
+    ulscopy = []; % userlines copy
     for ( i = 1:size(userlines,1) )
+        % No matter what happens we copy the line
+        ulscopy(i).xdata = get(userlines(i), 'XData');
+        ulscopy(i).ydata = get(userlines(i), 'YData');
+        ulscopy(i).color = get(userlines(i), 'Color');
+        ulscopy(i).linewidth = get(userlines(i), 'LineWidth');
+        ulscopy(i).userdata = get(userlines(i), 'UserData');
+
         try
             [subimg, imgoffset] = ...
                 findSegmentedRosette ( get(userlines(i), 'UserData'),...
@@ -262,7 +275,18 @@ function segment_Callback(hObject, eventdata, hndls)
         clear('si');
     end
 
-    image(handles.img, 'Parent', handles.image_axis);
+    imshow(handles.img, 'Parent', handles.image_axis);
+
+    % Re-draw all lines
+    for ( i = 1:size(ulscopy, 2) )
+        lh = line ( ulscopy(i).xdata, ulscopy(i).ydata, ...
+                    'Color', ulscopy(i).color, ...
+                    'LineWidth', ulscopy(i).linewidth, ...
+                    'UserData', ulscopy(i).userdata );
+
+        set( lh, 'ButtonDownFcn',...
+             @(src,event)button_press_on_line(src, event, lh));
+    end
 
     % Remember to save the changes.
     guidata(hObject, handles);
