@@ -252,7 +252,7 @@ function segment_Callback(hObject, eventdata, hndls)
 
     for ( i = 1:size(userlines,1) )
         try
-            [subimg, imgoffset] = ...
+            [subimg, imgRange] = ...
                 findSegmentedRosette ( get(userlines(i), 'UserData'),...
                                        handles.img );
         catch
@@ -264,8 +264,8 @@ function segment_Callback(hObject, eventdata, hndls)
 
         % Give a red hue to the detected rosette.
         [r c] = find(subimg ==1);
-        r = r + imgoffset(1) - 1;
-        c = c + imgoffset(2) - 1;
+        r = r + imgRange.yFrom - 1;
+        c = c + imgRange.xFrom - 1;
         tmpimg ( sub2ind( size(tmpimg), r, c, ...
                           ones(size(c,1), 1) ) ) = 255;
 
@@ -276,7 +276,7 @@ function segment_Callback(hObject, eventdata, hndls)
         handles.rosettes(i).linewidth = get(userlines(i), 'LineWidth');
         handles.rosettes(i).userdata = get(userlines(i), 'UserData');
         handles.rosettes(i).subimg = subimg;
-        handles.rosettes(i).imgoffset = imgoffset;
+        handles.rosettes(i).imgRange = imgRange;
 
     end
 

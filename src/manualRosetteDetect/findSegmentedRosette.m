@@ -13,7 +13,7 @@
 % You should have received a copy of the GNU General Public License
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-function [subimg, imgOffset] = findSegmentedRosette ( lh, img )
+function [subimg, imgRange] = findSegmentedRosette ( lh, img )
     % rosette center
     rc = double(round(lh));
 
@@ -35,7 +35,8 @@ function [subimg, imgOffset] = findSegmentedRosette ( lh, img )
 
     for ( i = 5:5:maxGrowth )
         % get a subimg
-        imgOffset = [rc(2)-i rc(1)-i];
+        imgRange = struct ( 'yFrom', rc(2)-i, 'yTo', rc(2)+i, ...
+                            'xFrom', rc(1)-i, 'xTo', rc(1)+i );
         subimg = img( rc(2)-i:rc(2)+i , rc(1)-i:rc(1)+i , : );
 
         subimg = getKMeansMask ( subimg, [0 1], 0.01, 10 );
@@ -71,7 +72,11 @@ function [subimg, imgOffset] = findSegmentedRosette ( lh, img )
     xFrom = min(min(pl(:,1))) - 1;
     xTo = max(max(pl(:,1))) + 1;
     subimg = subimg ( yFrom:yTo, xFrom:xTo );
-    imgOffset = [ imgOffset(1) + yFrom - 1  imgOffset(2) + xFrom - 1 ];
+    %imgOffset = [ imgOffset(1) + yFrom - 1  imgOffset(2) + xFrom - 1 ];
+    imgRange = struct ( 'yFrom', imgRange.yFrom + yFrom - 1, ...
+                        'yTo', imgRange.yFrom + yTo - 1, ...
+                        'xFrom', imgRange.xFrom + xFrom - 1, ...
+                        'xTo', imgRange.xFrom + xTo - 1);
 end
 
 % Classification with k=2.
