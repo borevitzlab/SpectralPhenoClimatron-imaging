@@ -252,9 +252,12 @@ function segment_Callback(hObject, eventdata, hndls)
 
     for ( i = 1:size(userlines,1) )
         try
-            [subimg, imgRange] = ...
-                findSegmentedRosette ( get(userlines(i), 'UserData'),...
-                                       handles.img );
+            clickCoords = double(get(userlines(i), 'UserData'));
+            imgR = struct ( 'yFrom', clickCoords(2), ...
+                            'yTo', clickCoords(2), ...
+                            'xFrom', clickCoords(1), ...
+                            'xTo', clickCoords(1) );
+            [subimg, imgRange] = findSegmentedRosette ( imgR, handles.img );
         catch
             c = get(userlines(i), 'UserData');
             disp( strcat ( 'Error for: (', num2str(c(1)),...
@@ -264,10 +267,10 @@ function segment_Callback(hObject, eventdata, hndls)
 
         % Give a red hue to the detected rosette.
         [r c] = find(subimg ==1);
-        r = r + imgRange.yFrom - 1;
-        c = c + imgRange.xFrom - 1;
-        tmpimg ( sub2ind( size(tmpimg), r, c, ...
-                          ones(size(c,1), 1) ) ) = 255;
+        r = int64(r + imgRange.yFrom - 1);
+        c = int64(c + imgRange.xFrom - 1);
+        d = int64(ones(size(c,1), 1));
+        tmpimg ( sub2ind( size(tmpimg), r, c, d ) ) = 255;
 
         % Cache lines and resulting segmentation in handles.rosettes.
         handles.rosettes(i).xdata = get(userlines(i), 'XData');

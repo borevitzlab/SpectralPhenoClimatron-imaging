@@ -13,17 +13,14 @@
 % You should have received a copy of the GNU General Public License
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-function [subimg, imgRange] = findSegmentedRosette ( lh, img )
-    % rosette center
-    rc = double(round(lh));
-
+function [subimg, imgRange] = findSegmentedRosette ( imgR, img )
     % true when we are satified with the mask
     foundRosette = false;
 
     % Our square can grow as big as the nearest image edge.
-    maxGrowth = min( [ rc(1)-1 rc(2)-1 ...
-                      abs(size(img,2)-rc(1)) ...
-                      abs(size(img,1)-rc(2)) ] );
+    maxGrowth = min ( [ imgR.yFrom imgR.xFrom ...
+                        abs(size(img,2) - imgR.xTo) ...
+                        abs(size(img,1) - imgR.yTo) ] );
     maxGrowth = maxGrowth - mod(maxGrowth,5); % Next multiple of 5 down.
     if ( maxGrowth > 200 ) % Only look at part of the image
         maxGrowth = 200;
@@ -35,9 +32,10 @@ function [subimg, imgRange] = findSegmentedRosette ( lh, img )
 
     for ( i = 5:5:maxGrowth )
         % get a subimg
-        imgRange = struct ( 'yFrom', rc(2)-i, 'yTo', rc(2)+i, ...
-                            'xFrom', rc(1)-i, 'xTo', rc(1)+i );
-        subimg = img( rc(2)-i:rc(2)+i , rc(1)-i:rc(1)+i , : );
+        imgRange = struct ( 'yFrom', imgR.yFrom-i, 'yTo', imgR.yTo+i, ...
+                            'xFrom', imgR.xFrom-i, 'xTo', imgR.xTo+i );
+        subimg = img( int64(imgRange.yFrom:imgRange.yTo) , ...
+                      int64(imgRange.xFrom:imgRange.xTo) , : );
 
         subimg = getKMeansMask ( subimg, [0 1], 0.01, 10 );
 
@@ -72,7 +70,6 @@ function [subimg, imgRange] = findSegmentedRosette ( lh, img )
     xFrom = min(min(pl(:,1))) - 1;
     xTo = max(max(pl(:,1))) + 1;
     subimg = subimg ( yFrom:yTo, xFrom:xTo );
-    %imgOffset = [ imgOffset(1) + yFrom - 1  imgOffset(2) + xFrom - 1 ];
     imgRange = struct ( 'yFrom', imgRange.yFrom + yFrom - 1, ...
                         'yTo', imgRange.yFrom + yTo - 1, ...
                         'xFrom', imgRange.xFrom + xFrom - 1, ...
