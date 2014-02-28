@@ -62,8 +62,7 @@ function [subimg, imgOffset] = findSegmentedRosette ( lh, img )
         throw(err);
     end
 
-    % Minimize the mask to snuggly enclose the connected components. We give a
-    % 1 pixel margin.
+    % Minimize mask to snuggly enclose connected components. 1 pixel margin.
     cc = bwconncomp(subimg, 4);
     pixList = regionprops(cc, 'PixelList');
     pl = vertcat(pixList.PixelList);
