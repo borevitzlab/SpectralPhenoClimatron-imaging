@@ -107,24 +107,6 @@ function hl = put_image_in_axis (hObject)
     hl = handles;
     guidata(hObject, handles);
 
-% --- Called when the a button is pressed on the figure/image
-function button_pressed_on_image(hObject, eventdata)
-    %initialize handles.
-    handles = guidata(hObject);
-
-    % What button did the user click?
-    % normal -> left click
-    % alt -> right click
-    % extended -> middle button. (might be different for mice
-    % that dont have a middle button).
-    mouseid = get(gcf,'SelectionType');
-    mpos = get( handles.image_axis, 'CurrentPoint');
-    rectangle('Position',[mpos(2,1), mpos(1,1),20,20]);
-
-    % Remember to save the changes.
-    guidata(hObject, handles);
-
-
 % --- Executes when figure1 is resized.
 function figure1_ResizeFcn(hObject, eventdata, handles)
 % hObject    handle to figure1 (see GCBO)
@@ -195,15 +177,6 @@ function figure1_WindowKeyReleaseFcn(hObject, eventdata, handles)
     % Remember to save the changes.
     guidata(hObject, handles);
 
-% --- Executes on scroll wheel click while the figure is in focus.
-function figure1_WindowScrollWheelFcn(hObject, eventdata, handles)
-% hObject    handle to figure1 (see GCBO)
-% eventdata  structure with the following fields (see FIGURE)
-%	VerticalScrollCount: signed integer indicating direction and number of clicks
-%	VerticalScrollAmount: number of lines scrolled for each click
-% handles    structure with handles and user data (see GUIDATA)
-    % Nothing for now. zoom mode takes care of everything.
-
 % Specifically here to catch the callbacks in zoom mode. We can't do this with
 % the normal figure1_WindowKeyPressFcn.
 function on_key_release_callback (hObject, eventdata)
@@ -257,15 +230,6 @@ function button_press_on_line(hObject, ~, line_handle)
         delete(line_handle);
     end
 
-% --- Executes on mouse press over figure background, over a disabled or
-% --- inactive control, or over an axes background.
-function figure1_WindowButtonUpFcn(hObject, eventdata, handles)
-% hObject    handle to figure1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-    % Nothing for now
-
-
 % --- Executes on button press in segment.
 function segment_Callback(hObject, eventdata, hndls)
 % hObject    handle to segment (see GCBO)
@@ -273,7 +237,6 @@ function segment_Callback(hObject, eventdata, hndls)
 % handles    structure with handles and user data (see GUIDATA)
     %initialize handles.
     handles = guidata(hObject);
-
 
     userlines = findobj(handles.figure1,'Type','line');
     for ( i = 1:size(userlines,1) )
