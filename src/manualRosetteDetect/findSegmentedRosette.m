@@ -25,7 +25,7 @@ function [subimg, imgOffset] = findSegmentedRosette ( lh, img )
                       abs(size(img,2)-rc(1)) ...
                       abs(size(img,1)-rc(2)) ] );
     maxGrowth = maxGrowth - mod(maxGrowth,5); % Next multiple of 5 down.
-    if ( maxGrowth > 100 ) % Only look at part of the image only.
+    if ( maxGrowth > 200 ) % Only look at part of the image
         maxGrowth = 200;
     elseif ( maxGrowth < 5 )
         err = MException( 'findSegmentedRosette:InvalidMaxGrowth', ...
