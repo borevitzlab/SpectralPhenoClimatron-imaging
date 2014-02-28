@@ -238,6 +238,9 @@ function segment_Callback(hObject, eventdata, hndls)
     %initialize handles.
     handles = guidata(hObject);
 
+    % We want to reuse the original image. paint on a temp one.
+    tmpimg = handles.img;
+
     userlines = findobj(handles.figure1,'Type','line');
 
     % This is painful: We want to dray the lines on the new image, but
@@ -268,14 +271,13 @@ function segment_Callback(hObject, eventdata, hndls)
         [r c] = find(subimg ==1);
         r = r + imgoffset(1) - 1;
         c = c + imgoffset(2) - 1;
-        handles.img ( sub2ind( size(handles.img), ...
-                               r, c, ...
-                               ones(size(c,1), 1) ) ) = 255;
+        tmpimg ( sub2ind( size(tmpimg), r, c, ...
+                          ones(size(c,1), 1) ) ) = 255;
 
         clear('si');
     end
 
-    imshow(handles.img, 'Parent', handles.image_axis);
+    imshow(tmpimg, 'Parent', handles.image_axis);
 
     % Re-draw all lines
     for ( i = 1:size(ulscopy, 2) )
