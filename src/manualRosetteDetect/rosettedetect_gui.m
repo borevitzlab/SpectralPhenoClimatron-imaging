@@ -288,19 +288,13 @@ function segment_Callback(hObject, eventdata, hndls)
             continue;
         end
 
-        % -1 to adjust for how matlab indexes arrays.
-        YFrom = imgoffset(1);
-        YTo = imgoffset(1)+size(subimg,1)-1;
-        XFrom = imgoffset(2);
-        XTo = imgoffset(2)+size(subimg,2)-1;
-
-        % create a grayscale for multiplication.
-        si(:,:,1) = uint8(~subimg);
-        si(:,:,2) = uint8(~subimg);
-        si(:,:,3) = uint8(~subimg);
-
-        handles.img(YFrom:YTo, XFrom:XTo, :) = ...
-                handles.img(YFrom:YTo, XFrom:XTo, :) .* si;
+        % Give a red hue to the detected rosette.
+        [r c] = find(subimg ==1);
+        r = r + imgoffset(1) - 1;
+        c = c + imgoffset(2) - 1;
+        handles.img ( sub2ind( size(handles.img), ...
+                               r, c, ...
+                               ones(size(c,1), 1) ) ) = 255;
 
         clear('si');
     end

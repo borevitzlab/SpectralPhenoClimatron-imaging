@@ -15,7 +15,7 @@
 % Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 function [subimg, imgOffset] = findSegmentedRosette ( lh, img )
     % rosette center
-    rc = uint32(round(lh));
+    rc = double(round(lh));
 
     % true when we are satified with the mask
     foundRosette = false;
