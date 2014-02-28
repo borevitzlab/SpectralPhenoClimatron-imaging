@@ -244,45 +244,26 @@ function segment_Callback(hObject, eventdata, hndls)
     % We want to reuse the original image. paint on a temp one.
     tmpimg = handles.img;
 
-    % Remove all rosettes from cache.
-    handles.rosettes = [];
-
-    % represents the squares in the image.
+    % Create the rosettes struct with the image squares.
+    handles.rosettes = []; % Remove previous rosettes.
     userlines = findobj(handles.figure1,'Type','line');
-
     for ( i = 1:size(userlines,1) )
-        try
-            clickCoords = double(get(userlines(i), 'UserData'));
-            imgR = struct ( 'yFrom', clickCoords(2), ...
-                            'yTo', clickCoords(2), ...
-                            'xFrom', clickCoords(1), ...
-                            'xTo', clickCoords(1) );
-            [subimg, imgRange] = findSegmentedRosette ( imgR, handles.img );
-        catch
-            c = get(userlines(i), 'UserData');
-            disp( strcat ( 'Error for: (', num2str(c(1)),...
-                            ',', num2str(c(2)), ').' ) );
-            continue;
-        end
-
-        % Give a red hue to the detected rosette.
-        [r c] = find(subimg ==1);
-        r = int64(r + imgRange.yFrom - 1);
-        c = int64(c + imgRange.xFrom - 1);
-        d = int64(ones(size(c,1), 1));
-        tmpimg ( sub2ind( size(tmpimg), r, c, d ) ) = 255;
-
-        % Cache lines and resulting segmentation in handles.rosettes.
         handles.rosettes(i).xdata = get(userlines(i), 'XData');
         handles.rosettes(i).ydata = get(userlines(i), 'YData');
         handles.rosettes(i).color = get(userlines(i), 'Color');
         handles.rosettes(i).linewidth = get(userlines(i), 'LineWidth');
         handles.rosettes(i).userdata = get(userlines(i), 'UserData');
-        handles.rosettes(i).subimg = subimg;
-        handles.rosettes(i).imgRange = imgRange;
+        handles.rosettes(i).subimg = [];
 
+        clickCoords = double(get(userlines(i), 'UserData'));
+        imgR = struct ( 'yFrom', clickCoords(2), 'yTo', clickCoords(2), ...
+                        'xFrom', clickCoords(1), 'xTo', clickCoords(1) );
+        handles.rosettes(i).imgRange = imgR;
     end
 
+    % Analyze handles.img
+    [handles.rosettesm, tmpimg] = analyzeImgRosette ( handles.rosettes, ...
+                                                     handles.img );
     imshow(tmpimg, 'Parent', handles.image_axis);
 
     % Re-draw all lines
