@@ -13,11 +13,31 @@
 % You should have received a copy of the GNU General Public License
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-function [subimg, imgRange] = findSegmentedRosette ( imgR, img )
+
+% Segment Rossets in image based on a 'square' approach.
+% Assumptions:
+% The color distribution in the minimum square containing the rosette should
+% have two peaks, one at rosette green and some other color (dirt). If the
+% square contains other objects besides these two, there might be a
+% miss-classifcitaion.
+%
+% Arguments:
+% imgR is the image range and contains y{From,To} and x{From,To} effectively
+%      describing a square inside the image.
+% img is the original color image
+%
+% Steps:
+% 1. Calculate the maximum growth in any direction.
+% 2. Analyze increasing subsquares in the image.
+% 3. Calculate a k-means (k=2) of the current subsquare.
+% 4. Remove noise and bring close connected components together.
+% 5. We stop when all sides of subimg are 0
+% 6. Recalculate enclosing square.
+function [subimg, imgRange] = segmentRosette_sqr ( imgR, img )
     % true when we are satified with the mask
     foundRosette = false;
 
-    % Our square can grow as big as the nearest image edge.
+    % 1. Calculate the maximum growth in any direction.
     maxGrowth = min ( [ imgR.yFrom imgR.xFrom ...
                         abs(size(img,2) - imgR.xTo) ...
                         abs(size(img,1) - imgR.yTo) ] );
@@ -25,13 +45,14 @@ function [subimg, imgRange] = findSegmentedRosette ( imgR, img )
     if ( maxGrowth > 200 ) % Only look at part of the image
         maxGrowth = 200;
     elseif ( maxGrowth < 5 )
-        err = MException( 'findSegmentedRosette:InvalidMaxGrowth', ...
+        err = MException( 'segmentRosette_sqr:InvalidMaxGrowth', ...
                           'maxGrowth var was calculated to be less than 5' );
         throw(err);
     end
 
+     % 2. Analyze increasing subsquares in the image.
     for ( i = 5:5:maxGrowth )
-        % get a subimg
+        % 3. Calculate a k-means (k=2) of the current subsquare.
         imgRange = struct ( 'yFrom', imgR.yFrom-i, 'yTo', imgR.yTo+i, ...
                             'xFrom', imgR.xFrom-i, 'xTo', imgR.xTo+i );
         subimg = img( int64(imgRange.yFrom:imgRange.yTo) , ...
@@ -39,13 +60,11 @@ function [subimg, imgRange] = findSegmentedRosette ( imgR, img )
 
         subimg = getKMeansMask ( subimg, [0 1], 0.01, 10 );
 
-        % Uses morphological close to remove small noise responses.  Struct
-        % element is a disk. Will bring close connected components together.
-        se = strel('disk', 3);
+        % 4. Remove noise and bring close connected components together.
+        se = strel('disk', 3); % struct element.
         subimg = imclose(subimg, se);
 
-        % Checks the sides of subimg for pixels greater than 0. We stop if no
-        % edge pixel is greater than 0;
+        % 5. We stop when all sides of subimg are 0
         if ( ( sum(subimg(:,1)) + sum(subimg(1,:))...
                + sum(subimg(size(subimg,1),:)) ...
                + sum(subimg(:,size(subimg,2))) ) == 0 )
@@ -56,12 +75,12 @@ function [subimg, imgRange] = findSegmentedRosette ( imgR, img )
 
     if ( ~foundRosette )
         % Means that we did not find rosette.
-        err = MException( 'findSegmentedRosette:RosetteNotFound', ...
+        err = MException( 'segmentRosette_sqr:RosetteNotFound', ...
                           'Could not find a good separation');
         throw(err);
     end
 
-    % Minimize mask to snuggly enclose connected components. 1 pixel margin.
+    % 6. Recalculate enclosing square.
     cc = bwconncomp(subimg, 4);
     pixList = regionprops(cc, 'PixelList');
     pl = vertcat(pixList.PixelList);
@@ -108,41 +127,4 @@ function retMask = getKMeansMask ( kimg, M, convRatio, maxIter )
 
     % 3. Return mask
     retMask = reshape ( retMask, size(kimg,1), size(kimg,2) );
-
-    % Steps:
-    % 1. Create two groups: a)closest to M(1) and b) closest to M(2)
-    % 2. Calculate mean of each group.
-    % 3. End if change in mean is very small.
-    % 4. Return mask of the bigger mean.
-    function retVal = getKMeansVecMask ( vec, M, convRatio, maxIter )
-        % keep track of the previous means.
-        Mprev = M;
-
-        % keep track of the nearness vectors.
-        near21 = []; %pixels near to M(1)
-        near22 = []; %pixels near to M(2)
-
-        for ( i = 1:maxIter )
-            % 1. Create two groups: a)closest to M(1) and b) closest to M(2)
-            near21 = abs(vec - M(1)) < abs(vec - M(2));
-            near22 = ~near21;
-
-            % 2. Calculate mean of each group.
-            M(1) = sum( vec( near21 ) ) / sum(near21);
-            M(2) = sum( vec( near22 ) ) / sum(near22);
-
-            % 3. End if change in mean is very small.
-            if ( pdist([Mprev(1) Mprev(2): M(1) M(2)]) < convRatio )
-                break;
-            end
-
-            Mprev = M;
-        end
-
-        % 4. Return mask of the bigger mean.
-        retVal = near22;
-        if ( M(1) > M(2) )
-            retVal = near21;
-        end
-    end
 end

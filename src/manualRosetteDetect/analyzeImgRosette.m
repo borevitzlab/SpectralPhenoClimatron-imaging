@@ -17,7 +17,7 @@ function [retRos, retImg] = analyzeImgRosette ( rosettes, img )
 
     retImg = img;
     for ( i = 1:size(rosettes,2) )
-        % Replicate the rosettes. update if findSegmentedRosette is successful
+        % Replicate the rosettes. update if segmentRosette_sqr is successful
         retRos(i).xdata = rosettes(i).xdata;
         retRos(i).ydata = rosettes(i).ydata;
         retRos(i).color = rosettes(i).color;
@@ -27,7 +27,7 @@ function [retRos, retImg] = analyzeImgRosette ( rosettes, img )
         retRos(i).imgRange = rosettes(i).imgRange;
 
         try
-            [subimg, imgRange] = findSegmentedRosette(rosettes(i).imgRange,...
+            [subimg, imgRange] = segmentRosette_sqr(rosettes(i).imgRange,...
                                                       img);
             retRos(i).subimg = subimg;
             retRos(i).imgRange = imgRange;
