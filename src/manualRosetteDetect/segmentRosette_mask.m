@@ -26,8 +26,8 @@ function [subimg, imgRange] = segmentRosette_mask ( imgR, img, mask )
                         abs(size(img,2) - imgR.xTo) ...
                         abs(size(img,1) - imgR.yTo) ] );
     maxGrowth = maxGrowth - mod(maxGrowth,5); % Next multiple of 5 down.
-    if ( maxGrowth > 200 ) % Only look at part of the image
-        maxGrowth = 200;
+    if ( maxGrowth > 100 ) % Only look at part of the image
+        maxGrowth = 100;
     elseif ( maxGrowth < 5 )
         err = MException( 'segmentRosette_sqr:InvalidMaxGrowth', ...
                           'maxGrowth var was calculated to be less than 5' );
