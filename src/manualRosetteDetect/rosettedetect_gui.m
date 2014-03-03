@@ -314,7 +314,7 @@ function show_Callback(hObject, eventdata, handles)
 
         img = imread(imgpath);
 
-        [handles.rosettesm, img] = analyzeImgRosette ( handles.rosettes,img );
+        [handles.rosettes, img] = analyzeImgRosette ( handles.rosettes,img );
         imshow(img, 'Parent', handles.image_axis);
         pause(1);
     end
