@@ -15,6 +15,27 @@
 % Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 % Segment Rossets in image based on the previous mask.
+% Assumptions:
+% The color distribution in the region surrounding mask should have two peaks,
+% one at rosette green and some other color (dirt). If the mask contains other
+% objects besides these two, there might be a miss-classification.
+%
+% Arguments:
+% imgR is the image range and contains y{From,To} and x{From,To} effectively
+%      describing a square inside the image.
+% img is the original color image
+% mask is the mask with pixel=1 for pixel belonging to plant.
+%
+% Steps:
+% 1. Calculate the maximum growth in any direction.
+% 2. Analyze increasing masks
+% 3. Dilate original mask.
+% 4. find coordinates and ExG values where the plant should have grown to.
+% 5. Calculate subimg with k-means (k=2) of these values.
+% 6. Remove noise and bring close connected components together.
+% 7. Stop when coordinates of perimeter of dilated mask in subimg are all 0.
+% 8. Recalculate enclosing square.
+
 function [subimg, imgRange] = segmentRosette_mask ( imgR, img, mask )
     % true when we are satified with the mask
     foundRosette = false;
@@ -34,11 +55,13 @@ function [subimg, imgRange] = segmentRosette_mask ( imgR, img, mask )
         throw(err);
     end
 
+    % 2. Analyze increasing masks
     for ( i = 5:5:maxGrowth )
         imgRange = struct ( 'yFrom', imgR.yFrom-i, 'yTo', imgR.yTo+i, ...
                             'xFrom', imgR.xFrom-i, 'xTo', imgR.xTo+i );
 
-        % Dilate (swells the original mask) and put mask in dilmask.
+        % 3. Dilate original mask.
+        % Swells the original mask and puts mask in dilmask.
         % se is twice i (aprox) so dilation almost reaches size(dilmask)
         dilmask = zeros( size(mask) + (i*2) );
         dilmask( i:i+size(mask,1)-1, ...
@@ -46,31 +69,26 @@ function [subimg, imgRange] = segmentRosette_mask ( imgR, img, mask )
         se = strel('square', (2*i)-1);
         dilmask = imdilate(dilmask, se);
 
-        % Get image corresponding to dilmask's size.
-        dilimg = img ( imgRange.yFrom:imgRange.yTo, ...
-                       imgRange.xFrom:imgRange.xTo, ...
-                       : );
-
-        % Convert to ExG
-        dilimg = double(dilimg);
+        % Convert image corresponding to dilmask's size to ExG.
+        dilimg = double ( img ( imgRange.yFrom:imgRange.yTo, ...
+                                imgRange.xFrom:imgRange.xTo, ...
+                                : ) );
         dilimg = 2*dilimg(:,:,2) - dilimg(:,:,1) - dilimg(:,:,3);
 
-        % find coordinates and values where the plant should have grown to.
+        % 4. Coordinates and ExG values where the plant should have grown to.
         [r, c] = find(dilmask == 1);
         v = dilimg( sub2ind( size(dilimg), r, c)) ;
 
-        % Calculate new segmentation for pixels in vertcat(r,c).
+        % 5. Calculate subimg with k-means (k=2) of these values.
         % Should be similar to mask (depends on growth and movement of plant)
         v_km = getKMeansVecMask(v, [0 1], 0.01, 10);
         subimg = zeros( size(dilmask) );
         subimg(sub2ind(size(subimg), r(v_km), c(v_km))) = 1;
 
-        % Remove noise and bring close connected components together.
+        % 6. Remove noise and bring close connected components together.
         subimg = imclose(subimg, strel('disk', 3) );
 
-        % If the perimeter coordinates of dilmask in new mask are 0, we stop.
-        % Otherwise it means that there has been more growth and we need to
-        % dilate a bit more.
+        % 7. Stop when coordinates of perimeter of dilated mask in subimg are all 0.
         perimImg = bwperim(dilmask);
         [r, c] = find(perimImg == 1); % coordiantes of the perimeter.
         if ( sum ( subimg( sub2ind(size(subimg), r, c) ) ) == 0 )
@@ -87,7 +105,7 @@ function [subimg, imgRange] = segmentRosette_mask ( imgR, img, mask )
         throw(err);
     end
 
-    % Recalculate enclosing square.
+    % 8. Recalculate enclosing square.
     cc = bwconncomp(subimg, 4);
     pixList = regionprops(cc, 'PixelList');
     pl = vertcat(pixList.PixelList);

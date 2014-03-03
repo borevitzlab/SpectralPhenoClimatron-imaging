@@ -19,7 +19,7 @@
 % The color distribution in the minimum square containing the rosette should
 % have two peaks, one at rosette green and some other color (dirt). If the
 % square contains other objects besides these two, there might be a
-% miss-classifcitaion.
+% miss-classification.
 %
 % Arguments:
 % imgR is the image range and contains y{From,To} and x{From,To} effectively
