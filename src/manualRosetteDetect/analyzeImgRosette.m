@@ -26,9 +26,18 @@ function [retRos, retImg] = analyzeImgRosette ( rosettes, img )
         retRos(i).subimg = rosettes(i).subimg;
         retRos(i).imgRange = rosettes(i).imgRange;
 
+        if ( size(retRos(i).subimg, 1) == 0 )
+            segmentFunc = ...
+                @(imgRan, img, mask)segmentRosette_sqr(imgRan,img);
+        else
+            segmentFunc = ...
+                @(imgRan, img, mask)segmentRosette_mask(imgRan,img,mask);
+        end
+
         try
-            [subimg, imgRange] = segmentRosette_sqr(rosettes(i).imgRange,...
-                                                      img);
+            [subimg, imgRange] = segmentFunc( rosettes(i).imgRange, ...
+                                              img, ...
+                                              rosettes(i).subimg );
             retRos(i).subimg = subimg;
             retRos(i).imgRange = imgRange;
         catch
