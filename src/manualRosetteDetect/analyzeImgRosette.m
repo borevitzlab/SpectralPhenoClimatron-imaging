@@ -41,6 +41,7 @@ function [retRos, retImg] = analyzeImgRosette ( rosettes, img )
                                               rosettes(i).subimg );
             retRos(i).subimg = subimg;
             retRos(i).imgRange = imgRange;
+            retRos(i).area = sum(sum(subimg));
         catch
             warning ( strcat ( 'Could not segment square : (', ...
                       num2str(rosettes(i).imgRange.yFrom), ',', ...
