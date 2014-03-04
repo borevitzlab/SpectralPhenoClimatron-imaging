@@ -22,7 +22,8 @@ function [retRos, retImg] = analyzeImgRosette ( rosettes, img )
         retRos(i).ydata = rosettes(i).ydata;
         retRos(i).color = rosettes(i).color;
         retRos(i).linewidth = rosettes(i).linewidth;
-        retRos(i).userdata = rosettes(i).userdata;
+        retRos(i).center = rosettes(i).center;
+        retRos(i).id = rosettes(i).id;
         retRos(i).subimg = rosettes(i).subimg;
         retRos(i).imgRange = rosettes(i).imgRange;
 

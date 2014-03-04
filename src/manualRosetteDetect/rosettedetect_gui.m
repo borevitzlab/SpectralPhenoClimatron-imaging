@@ -204,7 +204,7 @@ function figure1_WindowButtonDownFcn(hObject, eventdata, handles)
     % What button did the user click?
     % normal -> left click
     % alt -> right click
-    % extended -> middle button. (might be different for mice
+    % extend -> middle button. (might be different for mice
     % that dont have a middle button).
 
     mouseid = get(handles.figure1,'SelectionType');
@@ -215,7 +215,9 @@ function figure1_WindowButtonDownFcn(hObject, eventdata, handles)
                     [ mpos(1,2)-10 mpos(1,2)-10 ...
                       mpos(1,2)+10 mpos(1,2)+10 mpos(1,2)-10], ...
                     'Color', [1 0 0], 'LineWidth', 1 );
-        set( lh, 'UserData', [mpos(1,1) mpos(1,2)] );
+        ud.center = [mpos(1,1) mpos(1,2)];
+        ud.id = -1;
+        set( lh, 'UserData', ud );
 
         set( lh, 'ButtonDownFcn',...
              @(src,event)button_press_on_line(src, event, lh));
@@ -252,10 +254,12 @@ function segment_Callback(hObject, eventdata, hndls)
         handles.rosettes(i).ydata = get(userlines(i), 'YData');
         handles.rosettes(i).color = get(userlines(i), 'Color');
         handles.rosettes(i).linewidth = get(userlines(i), 'LineWidth');
-        handles.rosettes(i).userdata = get(userlines(i), 'UserData');
+        ud = get(userlines(i), 'UserData');
+        handles.rosettes(i).center = ud.center;
+        handles.rosettes(i).id = ud.id;
         handles.rosettes(i).subimg = [];
 
-        clickCoords = double(get(userlines(i), 'UserData'));
+        clickCoords = handles.rosettes(i).center;
         imgR = struct ( 'yFrom', clickCoords(2), 'yTo', clickCoords(2), ...
                         'xFrom', clickCoords(1), 'xTo', clickCoords(1) );
         handles.rosettes(i).imgRange = imgR;
@@ -268,10 +272,12 @@ function segment_Callback(hObject, eventdata, hndls)
 
     % Re-draw all lines
     for ( i = 1:size(handles.rosettes, 2) )
+        ud.center = handles.rosettes(i).center;
+        ud.id = handles.rosettes(i).id;
         lh = line ( handles.rosettes(i).xdata, handles.rosettes(i).ydata, ...
                     'Color', handles.rosettes(i).color, ...
                     'LineWidth', handles.rosettes(i).linewidth, ...
-                    'UserData', handles.rosettes(i).userdata );
+                    'UserData', ud );
 
         set( lh, 'ButtonDownFcn',...
              @(src,event)button_press_on_line(src, event, lh));
