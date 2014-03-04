@@ -303,19 +303,24 @@ function show_Callback(hObject, eventdata, handles)
     end
 
     filelist = dir(pathname);
-    for ( i = 1:5:size(filelist, 1) )
+    msgSize = 0; % used to output progress
+    for ( i = 1:size(filelist, 1) )
+
+        % Output progress
+        progress = (i/size(filelist,1))*100;
+        msg = sprintf('%4.2f -- %s  ', progress, filelist(i).name);
+        fprintf(repmat('\b', 1, msgSize));
+        fprintf( msg );
+        msgSize = numel(msg);
+
         fregexp = regexp(filelist(i).name, '.*\.[jpg|JPG|jpeg|JPEG]');
         if ( size(fregexp, 1) == 0 )
             continue;
         end
 
         imgpath = fullfile ( pathname, filelist(i).name );
-        imgpath
-
         img = imread(imgpath);
 
         [handles.rosettes, img] = analyzeImgRosette ( handles.rosettes,img );
-        imshow(img, 'Parent', handles.image_axis);
-        pause(1);
     end
 
