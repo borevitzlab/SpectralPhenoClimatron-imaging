@@ -233,6 +233,13 @@ function button_press_on_line(hObject, ~, line_handle)
     mouseid = get(handles.figure1,'SelectionType');
     if ( strcmp( mouseid, 'alt' ) == 1 )
         delete(line_handle);
+    elseif ( strcmp( mouseid, 'extend' ) == 1 )
+        ud = get(line_handle, 'UserData');
+        answer = inputdlg({'Enter rosette id'},'Input',1,{num2str(ud.id)});
+        if ( size(answer,1) > 0 )
+            ud.id = str2num(answer{1});
+            set(line_handle, 'UserData', ud);
+        end
     end
 
 % --- Executes on button press in segment.
