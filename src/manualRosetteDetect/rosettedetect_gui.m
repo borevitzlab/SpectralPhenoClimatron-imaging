@@ -242,6 +242,37 @@ function button_press_on_line(hObject, ~, line_handle)
         end
     end
 
+function rosettes = populate_rosette_struct_from_lines ( userlines )
+    rosettes = [];
+    for ( i = 1:size(userlines,1) )
+        rosettes(i).xdata = get(userlines(i), 'XData');
+        rosettes(i).ydata = get(userlines(i), 'YData');
+        rosettes(i).color = get(userlines(i), 'Color');
+        rosettes(i).linewidth = get(userlines(i), 'LineWidth');
+        ud = get(userlines(i), 'UserData');
+        rosettes(i).center = ud.center;
+        rosettes(i).id = ud.id;
+        rosettes(i).subimg = [];
+
+        clickCoords = rosettes(i).center;
+        imgR = struct ( 'yFrom', clickCoords(2), 'yTo', clickCoords(2), ...
+                        'xFrom', clickCoords(1), 'xTo', clickCoords(1) );
+        rosettes(i).imgRange = imgR;
+    end
+
+function draw_lines ( rosettes )
+    for ( i = 1:size(rosettes, 2) )
+        ud.center = rosettes(i).center;
+        ud.id = rosettes(i).id;
+        lh = line ( rosettes(i).xdata, rosettes(i).ydata, ...
+                    'Color', rosettes(i).color, ...
+                    'LineWidth', rosettes(i).linewidth, ...
+                    'UserData', ud );
+
+        set( lh, 'ButtonDownFcn',...
+             @(src,event)button_press_on_line(src, event, lh));
+    end
+
 % --- Executes on button press in segment.
 function segment_Callback(hObject, eventdata, hndls)
 % hObject    handle to segment (see GCBO)
@@ -256,21 +287,7 @@ function segment_Callback(hObject, eventdata, hndls)
     % Create the rosettes struct with the image squares.
     handles.rosettes = []; % Remove previous rosettes.
     userlines = findobj(handles.figure1,'Type','line');
-    for ( i = 1:size(userlines,1) )
-        handles.rosettes(i).xdata = get(userlines(i), 'XData');
-        handles.rosettes(i).ydata = get(userlines(i), 'YData');
-        handles.rosettes(i).color = get(userlines(i), 'Color');
-        handles.rosettes(i).linewidth = get(userlines(i), 'LineWidth');
-        ud = get(userlines(i), 'UserData');
-        handles.rosettes(i).center = ud.center;
-        handles.rosettes(i).id = ud.id;
-        handles.rosettes(i).subimg = [];
-
-        clickCoords = handles.rosettes(i).center;
-        imgR = struct ( 'yFrom', clickCoords(2), 'yTo', clickCoords(2), ...
-                        'xFrom', clickCoords(1), 'xTo', clickCoords(1) );
-        handles.rosettes(i).imgRange = imgR;
-    end
+    handles.rosettes = populate_rosette_struct_from_lines(userlines);
 
     % Analyze handles.img
     [handles.rosettes, tmpimg] = analyzeImgRosette ( handles.rosettes, ...
@@ -278,17 +295,7 @@ function segment_Callback(hObject, eventdata, hndls)
     imshow(tmpimg, 'Parent', handles.image_axis);
 
     % Re-draw all lines
-    for ( i = 1:size(handles.rosettes, 2) )
-        ud.center = handles.rosettes(i).center;
-        ud.id = handles.rosettes(i).id;
-        lh = line ( handles.rosettes(i).xdata, handles.rosettes(i).ydata, ...
-                    'Color', handles.rosettes(i).color, ...
-                    'LineWidth', handles.rosettes(i).linewidth, ...
-                    'UserData', ud );
-
-        set( lh, 'ButtonDownFcn',...
-             @(src,event)button_press_on_line(src, event, lh));
-    end
+    draw_lines ( handles.rosettes );
 
     % Remember to save the changes.
     guidata(hObject, handles);
@@ -315,6 +322,8 @@ function show_Callback(hObject, eventdata, handles)
         end
     end
 
+    userlines = findobj(handles.figure1,'Type','line');
+    handles.rosettes = populate_rosette_struct_from_lines ( userlines );
     filelist = dir(pathname);
     msgSize = 0; % used to output progress
     for ( i = 1:size(filelist, 1) )
@@ -366,6 +375,8 @@ function imgseries_Callback(hObject, eventdata, handles)
         return;
     end
 
+    userlines = findobj(handles.figure1,'Type','line');
+    handles.rosettes = populate_rosette_struct_from_lines ( userlines );
     filelist = dir(srcpath);
     msgSize = 0; % used to output progress
     for ( i = 1:size(filelist, 1) )
