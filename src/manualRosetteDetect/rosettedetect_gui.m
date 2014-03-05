@@ -326,7 +326,7 @@ function show_Callback(hObject, eventdata, handles)
         fprintf( msg );
         msgSize = numel(msg);
 
-        fregexp = regexp(filelist(i).name, '.*\.[jpg|JPG|jpeg|JPEG]');
+        fregexp = regexp(filelist(i).name, '.*\.[jJ][pP][gGeE][gG]*');
         if ( size(fregexp, 1) == 0 )
             continue;
         end
@@ -337,3 +337,74 @@ function show_Callback(hObject, eventdata, handles)
         [handles.rosettes, img] = analyzeImgRosette ( handles.rosettes,img );
     end
 
+
+% --- Executes on button press in imgseries.
+function imgseries_Callback(hObject, eventdata, handles)
+% hObject    handle to imgseries (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    %initialize handles.
+    handles = guidata(hObject);
+
+    imagetypes = '*.gif;*.jpg;*.png;*.jpeg,*.GIF;*.JPG;*.PNG;*.JPEG';
+    srcpath = double(0);
+    dstpath = double(0);
+
+    % Get the source directory
+    msgboxText{1} =  'Select source directory.';
+    uiwait(msgbox(msgboxText,'Select source directory.'));
+    srcpath = uigetdir(handles.current_dir, 'Select Source');
+    if ( ~ischar(srcpath) ) % End method if user hits cancel
+        return;
+    end
+
+    % Get destination directory
+    msgboxText{1} =  'Select destination directory.';
+    uiwait(msgbox(msgboxText,'Select Destination.'));
+    dstpath = uigetdir(handles.current_dir, 'Select destination directory');
+    if ( ~ischar(dstpath) ) % End method if user hits cancel
+        return;
+    end
+
+    filelist = dir(srcpath);
+    msgSize = 0; % used to output progress
+    for ( i = 1:size(filelist, 1) )
+
+        % Output progress
+        progress = (i/size(filelist,1))*100;
+        msg = sprintf('%4.2f -- %s  ', progress, filelist(i).name);
+        fprintf(repmat('\b', 1, msgSize));
+        fprintf( msg );
+        msgSize = numel(msg);
+
+        fregexp = regexp(filelist(i).name, '.*\.[jJ][pP][gGeE][gG]*');
+        if ( size(fregexp, 1) == 0 )
+            continue;
+        end
+        filelist(i).name
+
+        frompath = fullfile ( srcpath, filelist(i).name );
+        topath = fullfile ( dstpath, filelist(i).name );
+
+        img = imread(frompath);
+        [handles.rosettes, img] = analyzeImgRosette ( handles.rosettes,img );
+
+        imwrite ( img, topath );
+
+        %FIXME: Do we really want to show progress with images?
+        imshow(img, 'Parent', handles.image_axis);
+        pause(1);
+    end
+
+    % End by showing original image. No lines!
+    imshow(handles.img, 'Parent', handles.image_axis);
+    handles.rosettes = [];
+
+    % Remember to save the changes.
+    guidata(hObject, handles);
+
+% --- Executes on button press in vector.
+function vector_Callback(hObject, eventdata, handles)
+% hObject    handle to vector (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
