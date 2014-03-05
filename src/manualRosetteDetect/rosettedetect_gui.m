@@ -258,6 +258,7 @@ function rosettes = populate_rosette_struct_from_lines ( userlines )
         imgR = struct ( 'yFrom', clickCoords(2), 'yTo', clickCoords(2), ...
                         'xFrom', clickCoords(1), 'xTo', clickCoords(1) );
         rosettes(i).imgRange = imgR;
+        rosettes(i).area = -1;
     end
 
 function draw_lines ( rosettes )

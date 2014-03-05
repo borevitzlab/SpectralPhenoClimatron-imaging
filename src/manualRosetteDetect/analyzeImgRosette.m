@@ -43,11 +43,10 @@ function [retRos, retImg] = analyzeImgRosette ( rosettes, img )
             retRos(i).imgRange = imgRange;
             retRos(i).area = sum(sum(subimg));
         catch
-            warning ( strcat ( 'Could not segment square : (', ...
-                      num2str(rosettes(i).imgRange.yFrom), ',', ...
-                      num2str(rosettes(i).imgRange.xFrom), '), (', ...
-                      num2str(rosettes(i).imgRange.yTo), ',', ...
-                      num2str(rosettes(i).imgRange.xTo), ')' ) );
+            % The rosettes that have a subimg and have area = 0 are the ones
+            % that could not be segmented. area=-1 means that it has not been
+            % analyzed.
+            retRos(i).area = 0;
             continue;
         end
 
