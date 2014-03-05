@@ -346,7 +346,6 @@ function show_Callback(hObject, eventdata, handles)
         [handles.rosettes, img] = analyzeImgRosette ( handles.rosettes,img );
     end
 
-
 % --- Executes on button press in imgseries.
 function imgseries_Callback(hObject, eventdata, handles)
 % hObject    handle to imgseries (see GCBO)
@@ -418,3 +417,65 @@ function vector_Callback(hObject, eventdata, handles)
 % hObject    handle to vector (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+    %initialize handles.
+    handles = guidata(hObject);
+
+    userlines = findobj(handles.figure1,'Type','line');
+    handles.rosettes = populate_rosette_struct_from_lines ( userlines );
+    imgspath = double(0);
+
+    % Where are the images?
+    msgboxText{1} =  'Select source image directory.';
+    uiwait(msgbox(msgboxText,'Select source image directory.'));
+    imgspath = uigetdir(handles.current_dir, 'Select source image directory');
+    if ( ~ischar(imgspath) )
+        return;
+    end
+
+    ids = [];
+    %rosettes = []
+    dates = [];
+    areas = [];
+    % Generate column names
+    for ( i = 1:size(handles.rosettes,2) )
+        ids(handles.rosettes(i).id) = handles.rosettes(i).id;
+        %rosettes(handles.rosettes(i).id) = handles.rosettes(i);
+    end
+
+    filelist = dir(imgspath);
+    msgSize = 0; % used to output progress
+    for ( i = 1:size(filelist, 1) )
+
+        % Output progress
+        progress = (i/size(filelist,1))*100;
+        msg = sprintf('%4.2f -- %s  ', progress, filelist(i).name);
+        fprintf(repmat('\b', 1, msgSize));
+        fprintf( msg );
+        msgSize = numel(msg);
+
+        fregexp = regexp(filelist(i).name, '.*\.[jJ][pP][gGeE][gG]*');
+        if ( size(fregexp, 1) == 0 )
+            continue;
+        end
+
+        img = imread(fullfile ( imgspath, filelist(i).name ));
+
+        [handles.rosettes, img] = analyzeImgRosette ( handles.rosettes,img );
+
+        % construct area row for this date
+        tmpareas = [];
+        for ( j = 1:size(handles.rosettes, 2) )
+            tmpareas(handles.rosettes(j).id) = handles.rosettes(j).area;
+        end
+        areas = vertcat(areas, tmpareas);
+
+        % get date from file name and append to dates. file name parts (fnp)
+        fnp = textscan( filelist(i).name, '%s%d%d%d%d%d%d%s', ...
+                        'Delimiter', '_');
+        dates = [ dates datenum(double([fnp{2} fnp{3} fnp{4} ...
+                                        fnp{5} fnp{6} fnp{7}])) ];
+
+    end
+
+    topath = fullfile ( imgspath, 'rosetteAreas.mat' );
+    save (topath, 'ids', 'dates', 'areas');
