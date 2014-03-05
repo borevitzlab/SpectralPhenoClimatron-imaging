@@ -310,7 +310,6 @@ function show_Callback(hObject, eventdata, handles)
     %initialize handles.
     handles = guidata(hObject);
 
-    imagetypes = '*.gif;*.jpg;*.png;*.jpeg,*.GIF;*.JPG;*.PNG;*.JPEG';
     pathname = double(0);
 
     % Don't accept the user pressing the cancel button.
@@ -356,7 +355,6 @@ function imgseries_Callback(hObject, eventdata, handles)
     %initialize handles.
     handles = guidata(hObject);
 
-    imagetypes = '*.gif;*.jpg;*.png;*.jpeg,*.GIF;*.JPG;*.PNG;*.JPEG';
     srcpath = double(0);
     dstpath = double(0);
 
