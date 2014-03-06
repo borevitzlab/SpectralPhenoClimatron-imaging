@@ -301,51 +301,6 @@ function segment_Callback(hObject, eventdata, hndls)
     % Remember to save the changes.
     guidata(hObject, handles);
 
-
-% --- Executes on button press in show.
-function show_Callback(hObject, eventdata, handles)
-% hObject    handle to show (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-    %initialize handles.
-    handles = guidata(hObject);
-
-    pathname = double(0);
-
-    % Don't accept the user pressing the cancel button.
-    while ( ~ischar(pathname) )
-        pathname = uigetdir(handles.current_dir);
-
-        if ( ~ischar(pathname) )
-            msgboxText{1} =  'Directory path needed: You must select a dir.';
-            uiwait(msgbox(msgboxText,'You must select a directory.'));
-        end
-    end
-
-    userlines = findobj(handles.figure1,'Type','line');
-    handles.rosettes = populate_rosette_struct_from_lines ( userlines );
-    filelist = dir(pathname);
-    msgSize = 0; % used to output progress
-    for ( i = 1:size(filelist, 1) )
-
-        % Output progress
-        progress = (i/size(filelist,1))*100;
-        msg = sprintf('%4.2f -- %s  ', progress, filelist(i).name);
-        fprintf(repmat('\b', 1, msgSize));
-        fprintf( msg );
-        msgSize = numel(msg);
-
-        fregexp = regexp(filelist(i).name, '.*\.[jJ][pP][gGeE][gG]*');
-        if ( size(fregexp, 1) == 0 )
-            continue;
-        end
-
-        imgpath = fullfile ( pathname, filelist(i).name );
-        img = imread(imgpath);
-
-        [handles.rosettes, img] = analyzeImgRosette ( handles.rosettes,img );
-    end
-
 % --- Executes on button press in imgseries.
 function imgseries_Callback(hObject, eventdata, handles)
 % hObject    handle to imgseries (see GCBO)
