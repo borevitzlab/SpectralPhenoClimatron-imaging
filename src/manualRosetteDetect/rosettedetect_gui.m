@@ -391,6 +391,8 @@ function vector_Callback(hObject, eventdata, handles)
     %rosettes = []
     dates = [];
     areas = [];
+    gcc = [];
+    exg = [];
     % Generate column names
     for ( i = 1:size(handles.rosettes,2) )
         ids(handles.rosettes(i).id) = handles.rosettes(i).id;
@@ -417,12 +419,18 @@ function vector_Callback(hObject, eventdata, handles)
 
         [handles.rosettes, img] = analyzeImgRosette ( handles.rosettes,img );
 
-        % construct area row for this date
+        % construct area, gcc, exg rows for this date
         tmpareas = [];
+        tmpgcc = [];
+        tmpexg = [];
         for ( j = 1:size(handles.rosettes, 2) )
             tmpareas(handles.rosettes(j).id) = handles.rosettes(j).area;
+            tmpgcc(handles.rosettes(j).id) = handles.rosettes(j).gcc;
+            tmpexg(handles.rosettes(j).id) = handles.rosettes(j).exg;
         end
         areas = vertcat(areas, tmpareas);
+        gcc = vertcat(gcc, tmpgcc);
+        exg = vertcat(exg, tmpexg);
 
         % get date from file name and append to dates. file name parts (fnp)
         fnp = textscan( filelist(i).name, '%s%d%d%d%d%d%d%s', ...
@@ -433,4 +441,4 @@ function vector_Callback(hObject, eventdata, handles)
     end
 
     topath = fullfile ( imgspath, 'rosetteAreas.mat' );
-    save (topath, 'ids', 'dates', 'areas');
+    save (topath, 'ids', 'dates', 'areas', 'gcc', 'exg');

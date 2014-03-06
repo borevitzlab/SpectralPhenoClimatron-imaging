@@ -42,11 +42,15 @@ function [retRos, retImg] = analyzeImgRosette ( rosettes, img )
             retRos(i).subimg = subimg;
             retRos(i).imgRange = imgRange;
             retRos(i).area = sum(sum(subimg));
+            retRos(i).gcc = calc_gcc(imgRange, img, rosettes(i).subimg);
+            retRos(i).exg = calc_exg(imgRange, img, rosettes(i).subimg);
         catch
-            % The rosettes that have a subimg and have area = 0 are the ones
+            % The rosettes that have a subimg and have area = NaN are the ones
             % that could not be segmented. area=-1 means that it has not been
             % analyzed.
-            retRos(i).area = 0;
+            retRos(i).area = NaN;
+            retRos(i).gcc = NaN;
+            retRos(i).exg = NaN;
             continue;
         end
 
@@ -58,4 +62,39 @@ function [retRos, retImg] = analyzeImgRosette ( rosettes, img )
         retImg ( sub2ind( size(retImg), r, c, d ) ) = 255;
     end
 
+end
+
+function retVal = calc_gcc ( imgRange, img, mask )
+    [r c] = find(mask ==1);
+    r = int64(r + imgRange.yFrom - 1);
+    c = int64(c + imgRange.xFrom - 1);
+    d = int64(ones(size(c,1), 1));
+    R = double(img(sub2ind(size(img), r, c, d)));
+    d(:) = 2;
+    G = double(img(sub2ind(size(img), r, c, d)));
+    d(:) = 3;
+    B = double(img(sub2ind(size(img), r, c, d)));
+
+    %FIXME: How do we calculate gcc? would meadian be better?
+    %retVal = median(G./(R+G+B));
+    %retVal = median(G)/(median(R)+median(G)+median(B));
+    %retVal = mean(G)/(mean(R)+mean(G)+mean(B));
+    retVal = mean(G./(R+G+B));
+end
+
+function retVal = calc_exg ( imgRange, img, mask )
+    [r c] = find(mask ==1);
+    r = int64(r + imgRange.yFrom - 1);
+    c = int64(c + imgRange.xFrom - 1);
+    d = int64(ones(size(c,1), 1));
+    R = double(img(sub2ind(size(img), r, c, d)));
+    d(:) = 2;
+    G = double(img(sub2ind(size(img), r, c, d)));
+    d(:) = 3;
+    B = double(img(sub2ind(size(img), r, c, d)));
+
+    %FIXME: How do we calculate gcc? would meadian be better?
+    %retVal = median(2*G-R-B));
+    %retVal = 2*median(G)-median(R)+median(B);
+    retVal = mean(2*G-R-B);
 end
