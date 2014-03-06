@@ -393,6 +393,7 @@ function vector_Callback(hObject, eventdata, handles)
     areas = [];
     gcc = [];
     exg = [];
+    diams = [];
     % Generate column names
     for ( i = 1:size(handles.rosettes,2) )
         ids(handles.rosettes(i).id) = handles.rosettes(i).id;
@@ -423,14 +424,17 @@ function vector_Callback(hObject, eventdata, handles)
         tmpareas = [];
         tmpgcc = [];
         tmpexg = [];
+        tmpdiams = [];
         for ( j = 1:size(handles.rosettes, 2) )
             tmpareas(handles.rosettes(j).id) = handles.rosettes(j).area;
             tmpgcc(handles.rosettes(j).id) = handles.rosettes(j).gcc;
             tmpexg(handles.rosettes(j).id) = handles.rosettes(j).exg;
+            tmpdiams(handles.rosettes(j).id) = handles.rosettes(j).diam;
         end
         areas = vertcat(areas, tmpareas);
         gcc = vertcat(gcc, tmpgcc);
         exg = vertcat(exg, tmpexg);
+        diams = vertcat(diams, tmpdiams);
 
         % get date from file name and append to dates. file name parts (fnp)
         fnp = textscan( filelist(i).name, '%s%d%d%d%d%d%d%s', ...
@@ -441,4 +445,4 @@ function vector_Callback(hObject, eventdata, handles)
     end
 
     topath = fullfile ( imgspath, 'rosetteAreas.mat' );
-    save (topath, 'ids', 'dates', 'areas', 'gcc', 'exg');
+    save (topath, 'ids', 'dates', 'areas', 'gcc', 'exg', 'diams');
