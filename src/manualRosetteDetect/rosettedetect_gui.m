@@ -96,6 +96,7 @@ function hl = put_image_in_axis (hObject)
     input_image = fullfile(pathname, filename);
     if ( exist (char(input_image)) > 0 )
         handles.img = imread(char(input_image));
+        handles.current_dir = pathname;
 
         % Changes with every img. width/height
         handles.imgRatio = size(handles.img,2)/size(handles.img,1);
