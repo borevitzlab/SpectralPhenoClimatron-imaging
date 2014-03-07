@@ -58,7 +58,7 @@ function [subimg, imgRange] = segmentRosette_sqr ( imgR, img )
         subimg = img( int64(imgRange.yFrom:imgRange.yTo) , ...
                       int64(imgRange.xFrom:imgRange.xTo) , : );
 
-        subimg = getKMeansMask ( subimg, [0 1], 0.01, 10 );
+        subimg = getKMeansMask ( subimg, [0; 1], 0.01, 10 );
 
         % 4. Remove noise and bring close connected components together.
         se = strel('disk', 3); % struct element.
@@ -122,7 +122,7 @@ function retMask = getKMeansMask ( kimg, M, convRatio, maxIter )
     kimg = kimg/max(max(kimg));
 
     % 2. Separate pixels into two classes.
-    imgvec = reshape(kimg, 1, size(kimg,1)*size(kimg,2));
+    imgvec = reshape(kimg, size(kimg,1)*size(kimg,2), 1);
     retMask = getKMeansVecMask ( imgvec, M, convRatio, maxIter );
 
     % 3. Return mask

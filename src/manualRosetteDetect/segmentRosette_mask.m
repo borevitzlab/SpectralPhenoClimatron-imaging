@@ -81,7 +81,7 @@ function [subimg, imgRange] = segmentRosette_mask ( imgR, img, mask )
 
         % 5. Calculate subimg with k-means (k=2) of these values.
         % Should be similar to mask (depends on growth and movement of plant)
-        v_km = getKMeansVecMask(v, [0 1], 0.01, 10);
+        v_km = getKMeansVecMask(v, [0; 1], 0.01, 10);
         subimg = zeros( size(dilmask) );
         subimg(sub2ind(size(subimg), r(v_km), c(v_km))) = 1;
 
