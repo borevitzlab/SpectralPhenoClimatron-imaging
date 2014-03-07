@@ -45,15 +45,18 @@ function [retRos, retImg] = analyzeImgRosette ( rosettes, img )
             retRos(i).gcc = calc_gcc(imgRange, img, subimg);
             retRos(i).exg = calc_exg(imgRange, img, subimg);
             retRos(i).diam = calc_diameter(subimg);
-        catch
-            % The rosettes that have a subimg and have area = NaN are the ones
-            % that could not be segmented. area=-1 means that it has not been
-            % analyzed.
-            retRos(i).area = NaN;
-            retRos(i).gcc = NaN;
-            retRos(i).exg = NaN;
-            retRos(i).diam = NaN;
-            continue;
+        catch err
+            if ( strncmp(err.identifier, 'segmentRosette', 14) == 1)
+                % The rosettes having subimg and area = NaN could not be
+                % segmented. area=-1 have not been analyzed.
+                retRos(i).area = NaN;
+                retRos(i).gcc = NaN;
+                retRos(i).exg = NaN;
+                retRos(i).diam = NaN;
+                continue;
+            else
+                rethrow(err);
+            end
         end
 
         % Give a red hue to the detected rosette.
