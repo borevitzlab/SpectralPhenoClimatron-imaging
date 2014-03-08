@@ -58,7 +58,7 @@ function [subimg, imgRange] = segmentRosette_sqr ( imgR, img )
         subimg = img( int64(imgRange.yFrom:imgRange.yTo) , ...
                       int64(imgRange.xFrom:imgRange.xTo) , : );
 
-        subimg = getKMeansMask ( subimg, [0; 1], 0.01, 10 );
+        subimg = getKMeansMask ( subimg, 0.01, 10 );
 
         % 4. Remove noise and bring close connected components together.
         se = strel('disk', 3); % struct element.
@@ -103,7 +103,6 @@ end
 %
 % Arguments:
 % kimg is a 3D matrix (rgb image).
-% M is the starting means. [0 1] should be ok.
 % convRatio is the convergence ratio. 0.01 should be ok.
 % maxIter are the maximum number of iterations. 10 should be ok.
 %
@@ -111,18 +110,23 @@ end
 % 1. Convert To Excess Green
 % 2. Separate pixels into two classes.
 % 3. Return mask
-function retMask = getKMeansMask ( kimg, M, convRatio, maxIter )
+function retMask = getKMeansMask ( kimg, convRatio, maxIter )
 
-    % 1. Convert To Excess Green
-    kimg = double(kimg);
-    kimg = kimg(:,:,2)*2 - kimg(:,:,1) - kimg(:,:,3);
+    % F(:,:,1) -> a* of lab (Green tends to low values)
+    % F(:,:,2) -> b* of lab (Green tends to high values)
+    % F(:,:,3) -> texture (Green tends to high values)
+    % F(:,:,4) -> excess green (Green tends to high values)
+    F = getFeatures(kimg);
+    for ( i = 1:size(F,3) ) % Normalize all features
+        F(:,:,i) = F(:,:,i) - min(min(F(:,:,i)));
+        F(:,:,i) = F(:,:,i)/max(max(F(:,:,i)));
+    end
+    F(:,:,1) = abs(1 - F(:,:,1)); % F(:,:,1) tends to green on high values.
 
-    % normalize subimg. Range will be [0,1]
-    kimg = kimg + abs(min(min(kimg)));
-    kimg = kimg/max(max(kimg));
+    M = [0 0 0 0; 1 1 1 1];
 
     % 2. Separate pixels into two classes.
-    imgvec = reshape(kimg, size(kimg,1)*size(kimg,2), 1);
+    imgvec = reshape(F, size(F,1)*size(F,2), size(F,3));
     retMask = getKMeansVecMask ( imgvec, M, convRatio, maxIter );
 
     % 3. Return mask
