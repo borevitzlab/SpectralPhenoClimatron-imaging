@@ -69,19 +69,22 @@ function [subimg, imgRange] = segmentRosette_mask ( imgR, img, mask )
         se = strel('square', (2*i)-1);
         dilmask = imdilate(dilmask, se);
 
-        % Convert image corresponding to dilmask's size to ExG.
-        dilimg = double ( img ( int64(imgRange.yFrom:imgRange.yTo), ...
+        % Get features from image of dilmask's size.
+        F = getFeatures ( img ( int64(imgRange.yFrom:imgRange.yTo), ...
                                 int64(imgRange.xFrom:imgRange.xTo), ...
                                 : ) );
-        dilimg = 2*dilimg(:,:,2) - dilimg(:,:,1) - dilimg(:,:,3);
-
-        % 4. Coordinates and ExG values where the plant should have grown to.
+        % 4. Coordinates values where the plant should have grown to.
         [r, c] = find(dilmask == 1);
-        v = dilimg( sub2ind( size(dilimg), r, c)) ;
+        d = double(ones(size(c,1), 1));
+        vec = [];
+        for ( j = 1:4 )
+            vec(:,j) = F( sub2ind( size(F), r, c, d*j)) ;
+        end
 
         % 5. Calculate subimg with k-means (k=2) of these values.
         % Should be similar to mask (depends on growth and movement of plant)
-        v_km = getKMeansVecMask(v, [0; 1], 0.01, 10);
+        M = [0 0 0 0; 1 1 1 1];
+        v_km = getKMeansVecMask(vec, M, 0.01, 10);
         subimg = zeros( size(dilmask) );
         subimg(sub2ind(size(subimg), r(v_km), c(v_km))) = 1;
 
