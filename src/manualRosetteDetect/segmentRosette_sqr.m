@@ -31,7 +31,7 @@
 % 2. Analyze increasing subsquares in the image.
 % 3. Calculate a k-means (k=2) of the current subsquare.
 % 4. Remove noise and bring close connected components together.
-% 5. We stop when all sides of subimg are 0
+% 5. We stop when less than 98% of the side pixels are 1.
 % 6. Recalculate enclosing square.
 function [subimg, imgRange] = segmentRosette_sqr ( imgR, img )
     % true when we are satified with the mask
@@ -64,10 +64,12 @@ function [subimg, imgRange] = segmentRosette_sqr ( imgR, img )
         se = strel('disk', 3); % struct element.
         subimg = imclose(subimg, se);
 
-        % 5. We stop when all sides of subimg are 0
-        if ( ( sum(subimg(:,1)) + sum(subimg(1,:))...
-               + sum(subimg(size(subimg,1),:)) ...
-               + sum(subimg(:,size(subimg,2))) ) == 0 )
+        % 5. We stop when less than 98% of the side pixels are 1.
+        perim1 = sum(subimg(:,1)) + sum(subimg(1,:))...
+                 + sum(subimg(size(subimg,1),:)) ...
+                 + sum(subimg(:,size(subimg,2)));
+        perimT = 2*size(subimg,1) + 2*size(subimg,2);
+        if ( perim1/perimT < 0.02 )
             foundRosette = true;
             break;
         end
@@ -84,10 +86,10 @@ function [subimg, imgRange] = segmentRosette_sqr ( imgR, img )
     cc = bwconncomp(subimg, 4);
     pixList = regionprops(cc, 'PixelList');
     pl = vertcat(pixList.PixelList);
-    yFrom = min(min(pl(:,2))) - 1;
-    yTo = max(max(pl(:,2))) + 1;
-    xFrom = min(min(pl(:,1))) - 1;
-    xTo = max(max(pl(:,1))) + 1;
+    yFrom = min(min(pl(:,2)));
+    yTo = max(max(pl(:,2)));
+    xFrom = min(min(pl(:,1)));
+    xTo = max(max(pl(:,1)));
     subimg = subimg ( yFrom:yTo, xFrom:xTo );
     imgRange = struct ( 'yFrom', imgRange.yFrom + yFrom - 1, ...
                         'yTo', imgRange.yFrom + yTo - 1, ...

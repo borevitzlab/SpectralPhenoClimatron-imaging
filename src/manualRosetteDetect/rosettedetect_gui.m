@@ -346,7 +346,6 @@ function imgseries_Callback(hObject, eventdata, handles)
         if ( size(fregexp, 1) == 0 )
             continue;
         end
-        filelist(i).name
 
         frompath = fullfile ( srcpath, filelist(i).name );
         topath = fullfile ( dstpath, filelist(i).name );
@@ -389,16 +388,15 @@ function vector_Callback(hObject, eventdata, handles)
     end
 
     ids = [];
-    %rosettes = []
     dates = [];
     areas = [];
     gcc = [];
     exg = [];
     diams = [];
     % Generate column names
+    %FIXME: Catch when user forgets to asign numbers to rostes id are neg.
     for ( i = 1:size(handles.rosettes,2) )
         ids(handles.rosettes(i).id) = handles.rosettes(i).id;
-        %rosettes(handles.rosettes(i).id) = handles.rosettes(i);
     end
 
     filelist = dir(imgspath);

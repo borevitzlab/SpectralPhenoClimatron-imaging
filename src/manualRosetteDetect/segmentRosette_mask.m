@@ -91,10 +91,12 @@ function [subimg, imgRange] = segmentRosette_mask ( imgR, img, mask )
         % 6. Remove noise and bring close connected components together.
         subimg = imclose(subimg, strel('disk', 3) );
 
-        % 7. Stop when coordinates of perimeter of dilated mask in subimg are all 0.
+        % 7. Stop when 98% perimeter coordinates of dilated mask in subimg are 0
         perimImg = bwperim(dilmask);
         [r, c] = find(perimImg == 1); % coordiantes of the perimeter.
-        if ( sum ( subimg( sub2ind(size(subimg), r, c) ) ) == 0 )
+        perim1 = sum ( subimg( sub2ind(size(subimg), r, c) ) );
+        perimT = sum(sum(perimImg));
+        if ( perim1/perimT < 0.02 )
             % We found a good mask. no 'plant pixels' touching the perimter.
             foundRosette = true;
             break;
@@ -112,10 +114,10 @@ function [subimg, imgRange] = segmentRosette_mask ( imgR, img, mask )
     cc = bwconncomp(subimg, 4);
     pixList = regionprops(cc, 'PixelList');
     pl = vertcat(pixList.PixelList);
-    yFrom = min(min(pl(:,2))) - 1;
-    yTo = max(max(pl(:,2))) + 1;
-    xFrom = min(min(pl(:,1))) - 1;
-    xTo = max(max(pl(:,1))) + 1;
+    yFrom = min(min(pl(:,2)));
+    yTo = max(max(pl(:,2)));
+    xFrom = min(min(pl(:,1)));
+    xTo = max(max(pl(:,1)));
     subimg = subimg ( yFrom:yTo, xFrom:xTo );
     imgRange = struct ( 'yFrom', imgRange.yFrom + yFrom - 1, ...
                         'yTo', imgRange.yFrom + yTo - 1, ...
