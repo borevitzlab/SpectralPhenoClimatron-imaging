@@ -33,7 +33,7 @@
 % 4. Remove noise and bring close connected components together.
 % 5. We stop when less than 98% of the side pixels are 1.
 % 6. Recalculate enclosing square.
-function [subimg, imgRange] = segmentRosette_sqr ( imgR, img )
+function [mask, imgRange] = segmentRosette_sqr ( imgR, img )
     % true when we are satified with the mask
     foundRosette = false;
 
@@ -55,20 +55,20 @@ function [subimg, imgRange] = segmentRosette_sqr ( imgR, img )
         % 3. Calculate a k-means (k=2) of the current subsquare.
         imgRange = struct ( 'yFrom', imgR.yFrom-i, 'yTo', imgR.yTo+i, ...
                             'xFrom', imgR.xFrom-i, 'xTo', imgR.xTo+i );
-        subimg = img( int64(imgRange.yFrom:imgRange.yTo) , ...
+        mask = img( int64(imgRange.yFrom:imgRange.yTo) , ...
                       int64(imgRange.xFrom:imgRange.xTo) , : );
 
-        subimg = getKMeansMask ( subimg, 0.01, 10 );
+        mask = getKMeansMask ( mask, 0.01, 10 );
 
         % 4. Remove noise and bring close connected components together.
         se = strel('disk', 3); % struct element.
-        subimg = imclose(subimg, se);
+        mask = imclose(mask, se);
 
         % 5. We stop when less than 98% of the side pixels are 1.
-        perim1 = sum(subimg(:,1)) + sum(subimg(1,:))...
-                 + sum(subimg(size(subimg,1),:)) ...
-                 + sum(subimg(:,size(subimg,2)));
-        perimT = 2*size(subimg,1) + 2*size(subimg,2);
+        perim1 = sum(mask(:,1)) + sum(mask(1,:))...
+                 + sum(mask(size(mask,1),:)) ...
+                 + sum(mask(:,size(mask,2)));
+        perimT = 2*size(mask,1) + 2*size(mask,2);
         if ( perim1/perimT < 0.02 )
             foundRosette = true;
             break;
@@ -83,14 +83,14 @@ function [subimg, imgRange] = segmentRosette_sqr ( imgR, img )
     end
 
     % 6. Recalculate enclosing square.
-    cc = bwconncomp(subimg, 4);
+    cc = bwconncomp(mask, 4);
     pixList = regionprops(cc, 'PixelList');
     pl = vertcat(pixList.PixelList);
     yFrom = min(min(pl(:,2)));
     yTo = max(max(pl(:,2)));
     xFrom = min(min(pl(:,1)));
     xTo = max(max(pl(:,1)));
-    subimg = subimg ( yFrom:yTo, xFrom:xTo );
+    mask = mask ( yFrom:yTo, xFrom:xTo );
     imgRange = struct ( 'yFrom', imgRange.yFrom + yFrom - 1, ...
                         'yTo', imgRange.yFrom + yTo - 1, ...
                         'xFrom', imgRange.xFrom + xFrom - 1, ...

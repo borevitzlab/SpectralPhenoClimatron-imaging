@@ -31,12 +31,12 @@
 % 2. Analyze increasing masks
 % 3. Dilate original mask.
 % 4. find coordinates and ExG values where the plant should have grown to.
-% 5. Calculate subimg with k-means (k=2) of these values.
+% 5. Calculate retMask with k-means (k=2) of these values.
 % 6. Remove noise and bring close connected components together.
-% 7. Stop when coordinates of perimeter of dilated mask in subimg are all 0.
+% 7. Stop when coordinates of perimeter of dilated mask in retMask are all 0.
 % 8. Recalculate enclosing square.
 
-function [subimg, imgRange] = segmentRosette_mask ( imgR, img, mask )
+function [retMask, imgRange] = segmentRosette_mask ( imgR, img, mask )
     % true when we are satified with the mask
     foundRosette = false;
 
@@ -87,23 +87,23 @@ function [subimg, imgRange] = segmentRosette_mask ( imgR, img, mask )
             vec(:,j) = F( sub2ind( size(F), r, c, d*j)) ;
         end
 
-        % 5. Calculate subimg with k-means (k=2) of these values.
-        % Should be similar to mask (depends on growth and movement of plant)
+        % 5. Calculate retMask with k-means (k=2) of these values.
+        % Should be similar to retMaskdepends on growth and movement of plant)
         M = [0 0 0 0; 1 1 1 1];
         v_km = getKMeansVecMask(vec, M, 0.01, 10);
-        subimg = zeros( size(dilmask) );
-        subimg(sub2ind(size(subimg), r(v_km), c(v_km))) = 1;
+        retMask = zeros( size(dilmask) );
+        retMask(sub2ind(size(retMask), r(v_km), c(v_km))) = 1;
 
         % 6. Remove noise and bring close connected components together.
-        subimg = imclose(subimg, strel('disk', 3) );
+        retMask = imclose(retMask, strel('disk', 3) );
 
-        % 7. Stop when 98% perimeter coordinates of dilated mask in subimg are 0
+        % 7. Stop when 98% perimeter coordinates of dilated mask in retMask are 0
         perimImg = bwperim(dilmask);
         [r, c] = find(perimImg == 1); % coordiantes of the perimeter.
-        perim1 = sum ( subimg( sub2ind(size(subimg), r, c) ) );
+        perim1 = sum ( retMask( sub2ind(size(retMask), r, c) ) );
         perimT = sum(sum(perimImg));
         if ( perim1/perimT < 0.02 )
-            % We found a good mask. no 'plant pixels' touching the perimter.
+            % We found a good retMask. no 'plant pixels' touching the perimter.
             foundRosette = true;
             break;
         end
@@ -117,14 +117,14 @@ function [subimg, imgRange] = segmentRosette_mask ( imgR, img, mask )
     end
 
     % 8. Recalculate enclosing square.
-    cc = bwconncomp(subimg, 4);
+    cc = bwconncomp(retMask, 4);
     pixList = regionprops(cc, 'PixelList');
     pl = vertcat(pixList.PixelList);
     yFrom = min(min(pl(:,2)));
     yTo = max(max(pl(:,2)));
     xFrom = min(min(pl(:,1)));
     xTo = max(max(pl(:,1)));
-    subimg = subimg ( yFrom:yTo, xFrom:xTo );
+    retMask = retMask ( yFrom:yTo, xFrom:xTo );
     imgRange = struct ( 'yFrom', imgRange.yFrom + yFrom - 1, ...
                         'yTo', imgRange.yFrom + yTo - 1, ...
                         'xFrom', imgRange.xFrom + xFrom - 1, ...

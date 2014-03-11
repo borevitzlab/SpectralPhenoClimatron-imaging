@@ -24,10 +24,10 @@ function [retRos, retImg] = analyzeImgRosette ( rosettes, img )
         retRos(i).linewidth = rosettes(i).linewidth;
         retRos(i).center = rosettes(i).center;
         retRos(i).id = rosettes(i).id;
-        retRos(i).subimg = rosettes(i).subimg;
+        retRos(i).mask = rosettes(i).mask;
         retRos(i).imgRange = rosettes(i).imgRange;
 
-        if ( size(retRos(i).subimg, 1) == 0 )
+        if ( size(retRos(i).mask, 1) == 0 )
             segmentFunc = ...
                 @(imgRan, img, mask)segmentRosette_sqr(imgRan,img);
         else
@@ -36,18 +36,18 @@ function [retRos, retImg] = analyzeImgRosette ( rosettes, img )
         end
 
         try
-            [subimg, imgRange] = segmentFunc( rosettes(i).imgRange, ...
+            [mask, imgRange] = segmentFunc( rosettes(i).imgRange, ...
                                               img, ...
-                                              rosettes(i).subimg );
-            retRos(i).subimg = subimg;
+                                              rosettes(i).mask );
+            retRos(i).mask = mask;
             retRos(i).imgRange = imgRange;
-            retRos(i).area = sum(sum(subimg));
-            retRos(i).gcc = calc_gcc(imgRange, img, subimg);
-            retRos(i).exg = calc_exg(imgRange, img, subimg);
-            retRos(i).diam = calc_diameter(subimg);
+            retRos(i).area = sum(sum(mask));
+            retRos(i).gcc = calc_gcc(imgRange, img, mask);
+            retRos(i).exg = calc_exg(imgRange, img, mask);
+            retRos(i).diam = calc_diameter(mask);
         catch err
             if ( strncmp(err.identifier, 'segmentRosette', 14) == 1)
-                % The rosettes having subimg and area = NaN could not be
+                % The rosettes having mask and area = NaN could not be
                 % segmented. area=-1 have not been analyzed.
                 retRos(i).area = NaN;
                 retRos(i).gcc = NaN;
@@ -60,7 +60,7 @@ function [retRos, retImg] = analyzeImgRosette ( rosettes, img )
         end
 
         % Give a red hue to the detected rosette.
-        [r c] = find(retRos(i).subimg ==1);
+        [r c] = find(retRos(i).mask ==1);
         r = int64(r + retRos(i).imgRange.yFrom - 1);
         c = int64(c + retRos(i).imgRange.xFrom - 1);
         d = int64(ones(size(c,1), 1));
