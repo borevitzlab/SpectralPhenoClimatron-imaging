@@ -254,6 +254,7 @@ function rosettes = populate_rosette_struct_from_lines ( userlines )
         rosettes(i).center = ud.center;
         rosettes(i).id = ud.id;
         rosettes(i).mask = [];
+        rosettes(i).subimg = [];
 
         clickCoords = rosettes(i).center;
         imgR = struct ( 'yFrom', clickCoords(2), 'yTo', clickCoords(2), ...

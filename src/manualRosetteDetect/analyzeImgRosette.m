@@ -25,6 +25,7 @@ function [retRos, retImg] = analyzeImgRosette ( rosettes, img )
         retRos(i).center = rosettes(i).center;
         retRos(i).id = rosettes(i).id;
         retRos(i).mask = rosettes(i).mask;
+        retRos(i).subimg = rosettes(i).subimg;
         retRos(i).imgRange = rosettes(i).imgRange;
 
         if ( size(retRos(i).mask, 1) == 0 )
@@ -39,12 +40,14 @@ function [retRos, retImg] = analyzeImgRosette ( rosettes, img )
             [mask, imgRange] = segmentFunc( rosettes(i).imgRange, ...
                                               img, ...
                                               rosettes(i).mask );
-            retRos(i).mask = mask;
             retRos(i).imgRange = imgRange;
             retRos(i).area = sum(sum(mask));
             retRos(i).gcc = calc_gcc(imgRange, img, mask);
             retRos(i).exg = calc_exg(imgRange, img, mask);
             retRos(i).diam = calc_diameter(mask);
+            retRos(i).mask = mask;
+            retRos(i).subimg = img( imgRange.yFrom:imgRange.yTo, ...
+                                    imgRange.xFrom:imgRange.xTo, : );
         catch err
             if ( strncmp(err.identifier, 'segmentRosette', 14) == 1)
                 % The rosettes having mask and area = NaN could not be
