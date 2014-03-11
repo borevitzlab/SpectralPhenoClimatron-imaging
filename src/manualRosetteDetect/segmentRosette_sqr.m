@@ -114,11 +114,12 @@ end
 % 3. Return mask
 function retMask = getKMeansMask ( kimg, convRatio, maxIter )
 
-    % F(:,:,1) -> a* of lab (Green tends to low values)
-    % F(:,:,2) -> b* of lab (Green tends to high values)
-    % F(:,:,3) -> texture (Green tends to high values)
-    % F(:,:,4) -> excess green (Green tends to high values)
     F = getFeatures(kimg);
+    for ( i = 1:size(F,3) ) % Normalize all features
+        F(:,:,i) = F(:,:,i) - min(min(F(:,:,i)));
+        F(:,:,i) = F(:,:,i)/max(max(F(:,:,i)));
+    end
+    F(:,:,1) = abs(1 - F(:,:,1)); % a* of La*b* tends to green on high values.
 
     M = [0 0 0 0; 1 1 1 1];
 

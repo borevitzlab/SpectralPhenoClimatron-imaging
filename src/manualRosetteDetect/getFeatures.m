@@ -31,10 +31,4 @@ function F = getFeatures(I)
     F(:,:,3) = exp(-options.falloff*abs(F(:,:,3)));
 
     F(:,:,4) = double(I(:,:,2))*2 - double(I(:,:,1)) - double(I(:,:,3));
-
-    for ( i = 1:size(F,3) ) % Normalize all features
-        F(:,:,i) = F(:,:,i) - min(min(F(:,:,i)));
-        F(:,:,i) = F(:,:,i)/max(max(F(:,:,i)));
-    end
-    F(:,:,1) = abs(1 - F(:,:,1)); % F(:,:,1) tends to green on high values.
 end

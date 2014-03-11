@@ -73,6 +73,12 @@ function [subimg, imgRange] = segmentRosette_mask ( imgR, img, mask )
         F = getFeatures ( img ( int64(imgRange.yFrom:imgRange.yTo), ...
                                 int64(imgRange.xFrom:imgRange.xTo), ...
                                 : ) );
+        for ( i = 1:size(F,3) ) % Normalize all features
+            F(:,:,i) = F(:,:,i) - min(min(F(:,:,i)));
+            F(:,:,i) = F(:,:,i)/max(max(F(:,:,i)));
+        end
+        F(:,:,1) = abs(1 - F(:,:,1)); % F(:,:,1) tends to green on high values.
+
         % 4. Coordinates values where the plant should have grown to.
         [r, c] = find(dilmask == 1);
         d = double(ones(size(c,1), 1));
