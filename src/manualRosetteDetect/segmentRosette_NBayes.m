@@ -14,24 +14,51 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+% Important Assumptions:
+% 1. We assume that the colors of consecutive images is similar.
+% 2. We assume that the feature transformation result in values that are
+%    different for foreground and background.
+%
 % Arguments:
-% imgR is the image range in the form of y{From,To}, x{From,To}
-% img is the original image
-% prevMask is the mask from previous segmentations
-% prevImg is the previous
-function [retMask, maskRange] = segmentRosettes_NBayes (startR, currImg, ...
+% startR is the image range where prevMask fit in the previous image
+% currImg is the curent image
+% prevMask is the mask from previous image
+% prevSubimg is the previous sub-image.
+%
+% Steps:
+% 1. Calculate the maximum growth in any direction.
+% 2. Analyze increasing masks
+% 3. Calculate feature space
+% 4. Collect Foreground and Background training vectors
+% 5. Create data vector
+% 6. Normalize the values with image maximum minimums.
+% 7. Calculate mask with Bayesian model
+% 8. Stop when 98% perimeter coordinates of dilated mask in retMask are 0
+% 9. Recalculate enclosing square.
+function [retMask, maskRange] = segmentRosette_NBayes (startR, currImg, ...
                                                         prevMask, prevSubimg)
     % true when we are satified with the mask
     foundRosette = false;
 
     maskRange = startR;
 
-    maxGrowth = 60;
+    % 1. Calculate the maximum growth in any direction.
+    maxGrowth = min ( [ startR.yFrom startR.xFrom ...
+                        abs(size(currImg,2) - startR.xTo) ...
+                        abs(size(currImg,1) - startR.yTo) ] );
+    maxGrowth = maxGrowth - mod(maxGrowth,5); % Next multiple of 5 down.
+    if ( maxGrowth > 100 ) % Only look at part of the image
+        maxGrowth = 100;
+    elseif ( maxGrowth < 5 )
+        err = MException( 'segmentRosette_NBayes:InvalidMaxGrowth', ...
+                          'maxGrowth var was calculated to be less than 5' );
+        throw(err);
+    end
 
     % 2. Analyze increasing masks
     for ( i = 5:5:maxGrowth )
 
-        % Feature transformations for prevSubimg and currSubimg
+        % 3. Calculate feature space
         maskRange = struct ( 'yFrom', startR.yFrom-i, 'yTo', startR.yTo+i, ...
                              'xFrom', startR.xFrom-i, 'xTo', startR.xTo+i );
         currSubimg = currImg ( int64(maskRange.yFrom:maskRange.yTo), ...
@@ -39,6 +66,7 @@ function [retMask, maskRange] = segmentRosettes_NBayes (startR, currImg, ...
         FCurrSubimg = getFeatures ( currSubimg );
         FPrevSubimg = getFeatures ( prevSubimg );
 
+        % 4. Collect Foreground and Background training vectors
         % Collect Foreground training pixels from prevSubimg
         [r, c] = find ( prevMask == 1 );
         d = double(ones(size(c,1), 1));
@@ -88,7 +116,7 @@ function [retMask, maskRange] = segmentRosettes_NBayes (startR, currImg, ...
         Ftrain = vertcat(prevFTrain, currFTrain);
         Btrain = vertcat(prevBTrain, currBTrain);
 
-        % Create data vectro, we apply the model to this vector.
+        % 5. Create data vector
         [r, c] = find ( dilmask == 1 );
         d = double(ones(size(c,1), 1));
         data = [];
@@ -97,7 +125,7 @@ function [retMask, maskRange] = segmentRosettes_NBayes (startR, currImg, ...
                                                r, c, d*j ) );
         end
 
-        % Normalize the pixel values with image maximum minimums.
+        % 6. Normalize the values with image maximum minimums.
         minPixVal = min( [min(min(FPrevSubimg)), min(min(FCurrSubimg))] );
         for ( j = 1:size(Ftrain,2) ) % Normalize all features
             Ftrain(:,j) = Ftrain(:,j) - minPixVal(j);
@@ -109,22 +137,19 @@ function [retMask, maskRange] = segmentRosettes_NBayes (startR, currImg, ...
             data(:,j) = data(:,j)/max(max(data(:,j)));
         end
 
-        % Calc priors
+        % 7. Calculate mask with Bayesian model
         Fprior = size(Ftrain, 1)/(size(Ftrain,1)+size(Btrain,1));
         Bprior = size(Btrain, 1)/(size(Ftrain,1)+size(Btrain,1));
 
-        % Create model and classify
         bmodel = getBayesModel ( Btrain, Ftrain, Bprior, Fprior, 50 );
         pixClass = getBayesClassify ( bmodel, data );
 
-        % Calculate mask
         retMask = zeros( size(dilmask) );
         retMask(sub2ind(size(retMask), r(pixClass), c(pixClass))) = 1;
 
-        % 6. Remove noise and bring close connected components together.
         retMask = imclose(retMask, strel('disk', 3) );
 
-        % 7. Stop when 98% perimeter coordinates of dilated mask in retMask are 0
+        % 8. Stop when 98% perimeter coordinates of dilated mask in retMask are 0
         perimImg = bwperim(dilmask);
         [r, c] = find(perimImg == 1); % coordiantes of the perimeter.
         perim1 = sum ( retMask( sub2ind(size(retMask), r, c) ) );
@@ -137,12 +162,12 @@ function [retMask, maskRange] = segmentRosettes_NBayes (startR, currImg, ...
 
     if ( ~foundRosette )
         % Means that we did not find rosette.
-        err = MException( 'segmentRosettes_NBayes:RosetteNotFound', ...
+        err = MException( 'segmentRosette_NBayes:RosetteNotFound', ...
                           'Could not find a good separation');
         throw(err);
     end
 
-    % 8. Recalculate enclosing square.
+    % 9. Recalculate enclosing square.
     cc = bwconncomp(retMask, 4);
     pixList = regionprops(cc, 'PixelList');
     pl = vertcat(pixList.PixelList);
@@ -170,7 +195,7 @@ function bmodel = getBayesModel ( Bpix, Fpix, Bprior, Fprior, numBins )
 
     % Check input
     if ( size(Bpix,2) ~= size(Fpix,2) )
-        err = MException( 'segmentRosettes_NBayes:DimError', ...
+        err = MException( 'segmentRosette_NBayes:DimError', ...
                           'Error in dimensions of input arguments.');
         throw(err);
     end
