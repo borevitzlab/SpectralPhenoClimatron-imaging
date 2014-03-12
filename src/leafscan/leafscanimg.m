@@ -54,12 +54,14 @@ function [area, circleC, circleR, circleRcm] = leafscanimg ( imgpath )
         cc = bwconncomp(bwimg, 4);
 
         % Save the highest threshold that created only two connected components.
-        if ( cc.NumObjects == 2 )
+        if ( size(CC,1) == 0 ...
+             || ( cc.NumObjects >= 2 && cc.NumObjects < CC.NumObjects ) )
             CC = cc;
             CC.yfrom = yfrom;
             CC.yto = yto;
             CC.xfrom = xfrom;
             CC.xto = xto;
+            CC.NumObjects = cc.NumObjects;
         end
     end
 
@@ -74,19 +76,23 @@ function [area, circleC, circleR, circleRcm] = leafscanimg ( imgpath )
     areas = regionprops(CC, 'Area');
     pixels = regionprops(CC, 'PixelList');
 
-    % The square is the one with the smallest distance from 1,size(img,1).
-    square = {};
-    leaf = {};
-    dist_1 = pdist( [1 size(bwimg,1); centroids(1).Centroid] );
-    dist_2 = pdist( [1 size(bwimg,1); centroids(2).Centroid] );
+    % The square and the leaf are the two largest CC.
+    [~, ind] = sort([areas.Area], 'descend');
+    sqrInd = ind(1);
+    leafInd = ind(2);
 
-    sqrInd = 1;
-    leafInd = 2;
-    if (dist_1 > dist_2)
-        sqrInd = 2;
-        leafInd = 1;
+    % The square is the one with the smallest distance from 1,size(img,1).
+    dist_sqr = pdist( [1 size(bwimg,1); centroids(sqrInd).Centroid] );
+    dist_leaf = pdist( [1 size(bwimg,1); centroids(leafInd).Centroid] );
+
+    if (dist_sqr > dist_leaf) % the square is the other
+        tmpInd = sqrInd;
+        sqrInd = leafInd;
+        leafInd = tmpInd;
     end
 
+    square = {};
+    leaf = {};
     square.pixArea = areas(sqrInd).Area;
     square.pixSide = sqrt(square.pixArea);
     square.cmArea = 4;
