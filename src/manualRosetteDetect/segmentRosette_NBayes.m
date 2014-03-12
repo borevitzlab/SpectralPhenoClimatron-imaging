@@ -134,6 +134,27 @@ function [retMask, maskRange] = segmentRosettes_NBayes (startR, currImg, ...
             break;
         end
     end
+
+    if ( ~foundRosette )
+        % Means that we did not find rosette.
+        err = MException( 'segmentRosettes_NBayes:RosetteNotFound', ...
+                          'Could not find a good separation');
+        throw(err);
+    end
+
+    % 8. Recalculate enclosing square.
+    cc = bwconncomp(retMask, 4);
+    pixList = regionprops(cc, 'PixelList');
+    pl = vertcat(pixList.PixelList);
+    yFrom = min(min(pl(:,2)));
+    yTo = max(max(pl(:,2)));
+    xFrom = min(min(pl(:,1)));
+    xTo = max(max(pl(:,1)));
+    retMask = retMask ( yFrom:yTo, xFrom:xTo );
+    imgRange = struct ( 'yFrom', imgRange.yFrom + yFrom - 1, ...
+                        'yTo', imgRange.yFrom + yTo - 1, ...
+                        'xFrom', imgRange.xFrom + xFrom - 1, ...
+                        'xTo', imgRange.xFrom + xTo - 1 );
 end
 
 % Important assumptions
