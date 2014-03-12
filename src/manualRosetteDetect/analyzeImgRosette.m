@@ -28,9 +28,10 @@ function [retRos, retImg] = analyzeImgRosette ( rosettes, img )
         retRos(i).subimg = rosettes(i).subimg;
         retRos(i).imgRange = rosettes(i).imgRange;
 
-        if ( size(retRos(i).mask, 1) == 0 )
+        if ( size(retRos(i).mask, 1) == 0 || size(retRos(i).subimg, 1) == 0 )
             segmentFunc = ...
-                @(imgRan, img, mask)segmentRosette_sqr(imgRan,img);
+                @(imgRan, img, prevmask, previmg) ...
+                    segmentRosette_sqr(imgRan,img);
         else
             segmentFunc = ...
                 @(imgRan, img, mask)segmentRosette_levelset(imgRan,img,mask);
@@ -39,7 +40,8 @@ function [retRos, retImg] = analyzeImgRosette ( rosettes, img )
         try
             [mask, imgRange] = segmentFunc( rosettes(i).imgRange, ...
                                               img, ...
-                                              rosettes(i).mask );
+                                              rosettes(i).mask, ...
+                                              rosettes(i).subimg);
             retRos(i).imgRange = imgRange;
             retRos(i).area = sum(sum(mask));
             retRos(i).gcc = calc_gcc(imgRange, img, mask);
