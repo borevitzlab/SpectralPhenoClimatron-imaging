@@ -32,7 +32,7 @@ function [retRos, retImg] = analyzeImgRosette ( rosettes, img )
                 @(imgRan, img, mask)segmentRosette_sqr(imgRan,img);
         else
             segmentFunc = ...
-                @(imgRan, img, mask)segmentRosette_mask(imgRan,img,mask);
+                @(imgRan, img, mask)segmentRosette_levelset(imgRan,img,mask);
         end
 
         try
