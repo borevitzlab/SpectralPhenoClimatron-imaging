@@ -67,7 +67,6 @@ function mask = activeContours ( Img, contMask )
     lambda.pos = ones(1, numDims);
     lambda.neg = ones(1, numDims);
 
-    I = Img;
     Img = reshape ( Img, size(Img,1)*size(Img,2), numDims );
     Img = double(Img);
 
