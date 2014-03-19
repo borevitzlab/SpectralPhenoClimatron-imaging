@@ -33,7 +33,7 @@ function [retRos, retImg] = analyzeImgRosette ( rosettes, img )
                 @(imgRan, img, mask)segmentRosette_sqr(imgRan,img);
         else
             segmentFunc = ...
-                @(imgRan, img, mask)segmentRosette_levelset(imgRan,img,mask);
+                @(imgRan, img, mask)segmentRosette_mask(imgRan,img,mask);
         end
 
         try
@@ -43,8 +43,9 @@ function [retRos, retImg] = analyzeImgRosette ( rosettes, img )
             retRos(i).imgRange = imgRange;
             retRos(i).area = sum(sum(mask));
             retRos(i).gcc = calc_gcc(imgRange, img, mask);
-            retRos(i).exg = calc_exg(imgRange, img, mask);
+            %retRos(i).exg = calc_exg(imgRange, img, mask);
             retRos(i).diam = calc_diameter(mask);
+            retRos(i).perim = calc_perimeter(mask);
             retRos(i).mask = mask;
             retRos(i).subimg = img( int64(imgRange.yFrom:imgRange.yTo), ...
                                     int64(imgRange.xFrom:imgRange.xTo), : );
@@ -54,8 +55,9 @@ function [retRos, retImg] = analyzeImgRosette ( rosettes, img )
                 % segmented. area=-1 have not been analyzed.
                 retRos(i).area = NaN;
                 retRos(i).gcc = NaN;
-                retRos(i).exg = NaN;
+                %retRos(i).exg = NaN;
                 retRos(i).diam = NaN;
+                retRos(i).perim = NaN;
                 continue;
             else
                 rethrow(err);
@@ -115,4 +117,8 @@ function retVal = calc_diameter ( mask )
     % C-> center, R-> radius
     [C, R] = minboundcircle (c, r);
     retVal = 2*R;
+end
+
+function retVal = calc_perimeter ( mask )
+    retVal = sum(sum(bwperim(mask)));
 end

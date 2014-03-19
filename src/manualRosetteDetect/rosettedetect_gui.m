@@ -268,7 +268,10 @@ function rosettes = populate_rosette_struct_from_lines ( userlines )
         imgR = struct ( 'yFrom', clickCoords(2), 'yTo', clickCoords(2), ...
                         'xFrom', clickCoords(1), 'xTo', clickCoords(1) );
         rosettes(i).imgRange = imgR;
-        rosettes(i).area = -1;
+        rosettes(i).area = NaN;
+        rosettes(i).perim = NaN;
+        rosettes(i).diam = NaN;
+        rosettes(i).gcc = NaN;
     end
 
 function draw_lines ( rosettes )
@@ -403,8 +406,9 @@ function vector_Callback(hObject, eventdata, handles)
     dates = [];
     areas = [];
     gcc = [];
-    exg = [];
+    %exg = [];
     diams = [];
+    perims = [];
     % Generate column names
     %FIXME: Catch when user forgets to asign numbers to rostes id are neg.
     for ( i = 1:size(handles.rosettes,2) )
@@ -434,18 +438,21 @@ function vector_Callback(hObject, eventdata, handles)
         % construct area, gcc, exg rows for this date
         tmpareas = [];
         tmpgcc = [];
-        tmpexg = [];
+        %tmpexg = [];
         tmpdiams = [];
+        tmpperims = [];
         for ( j = 1:size(handles.rosettes, 2) )
             tmpareas(handles.rosettes(j).id) = handles.rosettes(j).area;
             tmpgcc(handles.rosettes(j).id) = handles.rosettes(j).gcc;
-            tmpexg(handles.rosettes(j).id) = handles.rosettes(j).exg;
+            %tmpexg(handles.rosettes(j).id) = handles.rosettes(j).exg;
             tmpdiams(handles.rosettes(j).id) = handles.rosettes(j).diam;
+            tmpperims(handles.rosettes(j).id) = handles.rosettes(j).perim;
         end
         areas = vertcat(areas, tmpareas);
         gcc = vertcat(gcc, tmpgcc);
-        exg = vertcat(exg, tmpexg);
+        %exg = vertcat(exg, tmpexg);
         diams = vertcat(diams, tmpdiams);
+        perims = vertcat(perims, tmpperims);
 
         % get date from file name and append to dates. file name parts (fnp)
         fnp = textscan( filelist(i).name, '%s%d%d%d%d%d%d%s', ...
@@ -456,4 +463,4 @@ function vector_Callback(hObject, eventdata, handles)
     end
 
     topath = fullfile ( imgspath, 'rosetteAreas.mat' );
-    save (topath, 'ids', 'dates', 'areas', 'gcc', 'exg', 'diams');
+    save (topath, 'ids', 'dates', 'areas', 'gcc', 'diams', 'perims');
