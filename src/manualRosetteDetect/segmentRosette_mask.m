@@ -102,7 +102,7 @@ function [retMask, imgRange] = segmentRosette_mask ( imgR, img, mask )
         [r, c] = find(perimImg == 1); % coordiantes of the perimeter.
         perim1 = sum ( retMask( sub2ind(size(retMask), r, c) ) );
         perimT = sum(sum(perimImg));
-        if ( perim1/perimT < 0.02 )
+        if ( perim1/perimT < 0.02 && sum(sum(retMask)) > 0 )
             % We found a good retMask. no 'plant pixels' touching the perimter.
             foundRosette = true;
             break;
