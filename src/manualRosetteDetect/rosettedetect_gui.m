@@ -416,6 +416,7 @@ function vector_Callback(hObject, eventdata, handles)
     end
 
     filelist = dir(imgspath);
+    topath = fullfile ( imgspath, 'rosetteAreas.mat' );
     msgSize = 0; % used to output progress
     for ( i = 1:size(filelist, 1) )
 
@@ -460,7 +461,7 @@ function vector_Callback(hObject, eventdata, handles)
         dates = [ dates datenum(double([fnp{2} fnp{3} fnp{4} ...
                                         fnp{5} fnp{6} fnp{7}])) ];
 
+        % Overwrite on every iteration. See what is being generated.
+        save (topath, 'ids', 'dates', 'areas', 'gcc', 'diams', 'perims');
     end
 
-    topath = fullfile ( imgspath, 'rosetteAreas.mat' );
-    save (topath, 'ids', 'dates', 'areas', 'gcc', 'diams', 'perims');
