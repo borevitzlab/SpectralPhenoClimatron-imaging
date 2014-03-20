@@ -218,6 +218,8 @@ function figure1_WindowButtonDownFcn(hObject, eventdata, handles)
                     'Color', [1 0 0], 'LineWidth', 1 );
         ud.center = [mpos(1,1) mpos(1,2)];
         ud.id = -1;
+        ud.text = text ( ud.center(1)+20, ud.center(2)-15, ...
+                        '-1', 'Color', [1 0 0], 'FontSize', 16 );
         set( lh, 'UserData', ud );
 
         set( lh, 'ButtonDownFcn',...
@@ -233,12 +235,18 @@ function button_press_on_line(hObject, ~, line_handle)
 
     mouseid = get(handles.figure1,'SelectionType');
     if ( strcmp( mouseid, 'alt' ) == 1 )
+        ud = get(line_handle, 'UserData');
+        delete(ud.text);
         delete(line_handle);
     elseif ( strcmp( mouseid, 'extend' ) == 1 )
         ud = get(line_handle, 'UserData');
         answer = inputdlg({'Enter rosette id'},'Input',1,{num2str(ud.id)});
         if ( size(answer,1) > 0 )
             ud.id = str2num(answer{1});
+            delete ( ud.text );
+            ud.text = text ( ud.center(1)+20, ud.center(2)-15, ...
+                                num2str(ud.id), 'Color', [1 0 0], ...
+                                'FontSize', 16 );
             set(line_handle, 'UserData', ud);
         end
     end
@@ -267,6 +275,9 @@ function draw_lines ( rosettes )
     for ( i = 1:size(rosettes, 2) )
         ud.center = rosettes(i).center;
         ud.id = rosettes(i).id;
+        ud.text = text ( ud.center(1)+20, ud.center(2)-15, ...
+                        num2str(ud.id), 'Color', [1 0 0], ...
+                        'FontSize', 16 );
         lh = line ( rosettes(i).xdata, rosettes(i).ydata, ...
                     'Color', rosettes(i).color, ...
                     'LineWidth', rosettes(i).linewidth, ...
