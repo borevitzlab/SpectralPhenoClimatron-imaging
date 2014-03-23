@@ -38,8 +38,8 @@ function coordinates = detectLattice ( lat, latImg )
     vlnsGroups = groupLines ( vlns, latNumVLns );
 
     % For each group select a representant line.
-    hlnsGroups = calcRepresentantLines ( hlnsGroups, size(img) );
-    vlnsGroups = calcRepresentantLines ( vlnsGroups, size(img) );
+    hlnsGroups = calcRepresentantLines ( hlnsGroups, size(latImg) );
+    vlnsGroups = calcRepresentantLines ( vlnsGroups, size(latImg) );
 
     % Intersect all representant lines and return intersect coordinates.
     coordinates = calcLatticeIntersections ( hlnsGroups, vlnsGroups );
