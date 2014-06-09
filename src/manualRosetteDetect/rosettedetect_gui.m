@@ -402,13 +402,22 @@ function vector_Callback(hObject, eventdata, handles)
 
     userlines = findobj(handles.figure1,'Type','line');
     handles.rosettes = populate_rosette_struct_from_lines ( userlines );
-    imgspath = double(0);
+    srcpath = double(0);
+    dstpath = double(0);
 
     % Where are the images?
     msgboxText{1} =  'Select source image directory.';
     uiwait(msgbox(msgboxText,'Select source image directory.'));
-    imgspath = uigetdir(handles.current_dir, 'Select source image directory');
-    if ( ~ischar(imgspath) )
+    srcpath = uigetdir(handles.current_dir, 'Select source image directory');
+    if ( ~ischar(srcpath) )
+        return;
+    end
+
+    % Get destination directory
+    msgboxText{1} =  'Select destination directory.';
+    uiwait(msgbox(msgboxText,'Select Destination.'));
+    dstpath = uigetdir(handles.current_dir, 'Select destination directory');
+    if ( ~ischar(dstpath) ) % End method if user hits cancel
         return;
     end
 
@@ -425,8 +434,8 @@ function vector_Callback(hObject, eventdata, handles)
         ids(handles.rosettes(i).id) = handles.rosettes(i).id;
     end
 
-    filelist = rdir(imgspath, '/**/*.jpg')
-    topath = fullfile ( imgspath, 'rosetteAreas.mat' );
+    filelist = rdir([srcpath, '/**/*.jpg'], '', true);
+    featpath = fullfile ( srcpath, 'rosetteAreas.mat' );
     msgSize = 0; % used to output progress
     for ( i = 1:size(filelist, 1) )
 
@@ -446,7 +455,7 @@ function vector_Callback(hObject, eventdata, handles)
             continue;
         end
 
-        img = imread(fullfile ( imgspath, filelist(i).name ));
+        img = imread(fullfile ( srcpath, filelist(i).name ));
 
         [handles.rosettes, img] = analyzeImgRosette ( handles.rosettes,img );
 
@@ -476,6 +485,18 @@ function vector_Callback(hObject, eventdata, handles)
                                         fnp{5} fnp{6} fnp{7}])) ];
 
         % Overwrite on every iteration. See what is being generated.
-        save (topath, 'ids', 'dates', 'areas', 'gcc', 'diams', 'perims');
+        save (featpath, 'ids', 'dates', 'areas', 'gcc', 'diams', 'perims');
+
+        topath = fullfile ( dstpath, filelist(i).name );
+        [p,n,e] = fileparts(topath);
+        if ( exist(p) ~= 7 )
+            mkdir(p);
+        end
+
+        imwrite ( img, topath );
+
+        %FIXME: Do we really want to show progress with images?
+        imshow(img, 'Parent', handles.image_axis);
+        pause(1);
     end
 
