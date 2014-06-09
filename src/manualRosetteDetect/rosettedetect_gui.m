@@ -363,6 +363,10 @@ function imgseries_Callback(hObject, eventdata, handles)
             continue;
         end
 
+        if ( filelist(i).bytes < 1000 )
+            continue;
+        end
+
         frompath = fullfile ( srcpath, filelist(i).name );
         topath = fullfile ( dstpath, filelist(i).name );
 
@@ -435,6 +439,10 @@ function vector_Callback(hObject, eventdata, handles)
 
         fregexp = regexp(filelist(i).name, '.*\.[jJ][pP][gGeE][gG]*');
         if ( size(fregexp, 1) == 0 )
+            continue;
+        end
+
+        if ( filelist(i).bytes < 1000 )
             continue;
         end
 
