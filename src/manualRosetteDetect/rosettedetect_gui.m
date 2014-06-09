@@ -346,7 +346,8 @@ function imgseries_Callback(hObject, eventdata, handles)
 
     userlines = findobj(handles.figure1,'Type','line');
     handles.rosettes = populate_rosette_struct_from_lines ( userlines );
-    filelist = dir(srcpath);
+    %filelist = dir(srcpath);
+    filelist = rdir([srcpath, '/**/*.jpg'], '', true);
     msgSize = 0; % used to output progress
     for ( i = 1:size(filelist, 1) )
 
@@ -367,6 +368,11 @@ function imgseries_Callback(hObject, eventdata, handles)
 
         img = imread(frompath);
         [handles.rosettes, img] = analyzeImgRosette ( handles.rosettes,img );
+
+        [p,n,e] = fileparts(topath);
+        if ( exist(p) ~= 7 )
+            mkdir(p);
+        end
 
         imwrite ( img, topath );
 
@@ -415,7 +421,7 @@ function vector_Callback(hObject, eventdata, handles)
         ids(handles.rosettes(i).id) = handles.rosettes(i).id;
     end
 
-    filelist = dir(imgspath);
+    filelist = rdir(imgspath, '/**/*.jpg')
     topath = fullfile ( imgspath, 'rosetteAreas.mat' );
     msgSize = 0; % used to output progress
     for ( i = 1:size(filelist, 1) )
