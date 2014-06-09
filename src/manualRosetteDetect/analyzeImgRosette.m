@@ -15,7 +15,7 @@
 % Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 function [retRos, retImg] = analyzeImgRosette ( rosettes, img )
 
-    retImg = img;
+    retImg = zeros(size(img,1), size(img,2));
     for ( i = 1:size(rosettes,2) )
         % Replicate the rosettes. update if segmentRosette_sqr is successful
         retRos(i).xdata = rosettes(i).xdata;
@@ -64,12 +64,15 @@ function [retRos, retImg] = analyzeImgRosette ( rosettes, img )
             end
         end
 
-        % Give a red hue to the detected rosette.
+        % Return the total mask
         [r c] = find(retRos(i).mask ==1);
         r = int64(r + retRos(i).imgRange.yFrom - 1);
         c = int64(c + retRos(i).imgRange.xFrom - 1);
-        d = int64(ones(size(c,1), 1));
-        retImg ( sub2ind( size(retImg), r, c, d ) ) = 255;
+        retImg ( sub2ind( size(retImg), r, c ) ) = 1;
+
+        % Give a red hue to the detected rosette.
+        %d = int64(ones(size(c,1), 1));
+        %retImg ( sub2ind( size(retImg), r, c, d) ) = 255;
     end
 
 end
