@@ -44,8 +44,27 @@ function coordinates = detectLattice ( lat, latImg )
     % Intersect all representant lines and return intersect coordinates.
     coordinates = calcLatticeIntersections ( hlnsGroups, vlnsGroups );
 
-    %FIXME: We can futher adjust the coordinates by making them look more like
-    %       the argument lat.
+    coordinates = fitToModelLattice ( coordinates, [] );
+end
+
+% Try to make get modelLattice as close to coordinates as possible. Use
+% procrustes transform.
+function coordinates = fitToModelLattice ( coordinates, modelLattice )
+
+    % Create unit lattice
+    % FIXME: we need to create the unit lattice automatically. Or at least
+    % easier than definning x and y.
+    x = [0 230 460 690 950 1210 1440 1670 1930 2190 ...
+            2420 2650 2910 3170 3400 3630 3860];
+    y = [0 230 460 690 920 1180 1440 1670 1900 2130 2360];
+
+    modelLattice = [];
+    for ( i=1:size(y,2) )
+         modelLattice = vertcat(modelLattice, [x; ones(1,size(x,2))*y(i)]');
+    end
+
+    [D, coordinates] = procrustes(coordinates, modelLattice);
+
 end
 
 % No important assumptions.
